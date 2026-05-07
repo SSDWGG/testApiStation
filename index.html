@@ -701,6 +701,13 @@ function getApiConfig() {
   };
 }
 
+function buildEndpoint(baseUrl, path) {
+  const url = baseUrl.replace(/\/$/, '');
+  if (url.endsWith(path)) return url;
+  if (url.endsWith('/v1')) return `${url}/${path.replace(/^\//, '')}`;
+  return `${url}${path}`;
+}
+
 async function callAPI(messages, options = {}) {
   const cfg = getApiConfig();
   const defaults = { model: cfg.model, max_tokens: 256, temperature: 0 };
@@ -711,12 +718,12 @@ async function callAPI(messages, options = {}) {
   switch (cfg.format) {
     case 'openai':
     default:
-      endpoint = cfg.baseUrl.endsWith('/chat/completions') ? cfg.baseUrl : `${cfg.baseUrl}/v1/chat/completions`;
+      endpoint = buildEndpoint(cfg.baseUrl, '/v1/chat/completions');
       headers = { 'Content-Type':'application/json', 'Authorization':`Bearer ${cfg.apiKey}` };
       reqBody = JSON.stringify(body);
       break;
     case 'openai-responses':
-      endpoint = cfg.baseUrl.endsWith('/responses') ? cfg.baseUrl : `${cfg.baseUrl}/v1/responses`;
+      endpoint = buildEndpoint(cfg.baseUrl, '/v1/responses');
       headers = { 'Content-Type':'application/json', 'Authorization':`Bearer ${cfg.apiKey}` };
       reqBody = JSON.stringify({
         model: body.model,
@@ -727,7 +734,7 @@ async function callAPI(messages, options = {}) {
       });
       break;
     case 'anthropic':
-      endpoint = cfg.baseUrl.endsWith('/messages') ? cfg.baseUrl : `${cfg.baseUrl}/v1/messages`;
+      endpoint = buildEndpoint(cfg.baseUrl, '/v1/messages');
       headers = { 'Content-Type':'application/json', 'x-api-key':cfg.apiKey, 'anthropic-version':'2023-06-01' };
       reqBody = JSON.stringify({
         model: body.model, max_tokens: body.max_tokens, temperature: body.temperature,
@@ -736,7 +743,7 @@ async function callAPI(messages, options = {}) {
       });
       break;
     case 'dashscope':
-      endpoint = cfg.baseUrl.endsWith('/chat/completions') ? cfg.baseUrl : `${cfg.baseUrl}/v1/chat/completions`;
+      endpoint = buildEndpoint(cfg.baseUrl, '/v1/chat/completions');
       headers = { 'Content-Type':'application/json', 'Authorization':`Bearer ${cfg.apiKey}` };
       reqBody = JSON.stringify(body);
       break;
@@ -833,10 +840,14 @@ const probes = [
   {
     id:'stop_sequences', name:'stop 序列行为', category:'behavior', weight:8,
     async run() {
-      const resp = await callAPI([{role:'user',content:'Write a short paragraph about cats.'}],{max_tokens:200,stop:['cats','feline']});
-      const text = extractText(resp).toLowerCase();
-      const stopped = text.length<80||text.indexOf('cat')>text.length*0.5;
-      return { score:stopped?85:35, details:{'stop参数':'["cats","feline"]','响应文本':text.substring(0,200),'stop生效':stopped?'可能生效':'可能未生效'}, severity:score>=60?'pass':'warn' };
+      try {
+        const resp = await callAPI([{role:'user',content:'Write a short paragraph about cats.'}],{max_tokens:200,stop:['cats','feline']});
+        const text = extractText(resp).toLowerCase();
+        const stopped = text.length<80||text.indexOf('cat')>text.length*0.5;
+        return { score:stopped?85:35, details:{'stop参数':'["cats","feline"]','响应文本':text.substring(0,200),'stop生效':stopped?'可能生效':'可能未生效'}, severity:stopped?'pass':'warn' };
+      } catch(e) {
+        return { score:30, details:{'stop参数':'["cats","feline"]','请求结果':'API不支持stop参数或请求被拒绝','错误信息':e.message}, severity:'warn' };
+      }
     }
   },
   {
@@ -845,9 +856,11 @@ const probes = [
       const cfg = getApiConfig();
       let ep;
       if (cfg.format==='anthropic') {
-        ep = cfg.baseUrl.endsWith('/messages')?cfg.baseUrl:`${cfg.baseUrl}/v1/messages`;
+        ep = buildEndpoint(cfg.baseUrl, '/v1/messages');
+      } else if (cfg.format==='openai-responses') {
+        ep = buildEndpoint(cfg.baseUrl, '/v1/responses');
       } else {
-        ep = cfg.baseUrl.endsWith('/chat/completions')?cfg.baseUrl:`${cfg.baseUrl}/v1/chat/completions`;
+        ep = buildEndpoint(cfg.baseUrl, '/v1/chat/completions');
       }
       try {
         const resp = await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${cfg.apiKey}`},body:JSON.stringify({model:'nonexistent-model-xyz-99999',messages:[{role:'user',content:'test'}]}),signal:abortController?.signal});
