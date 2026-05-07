@@ -817,7 +817,7 @@ const probes = [
     id:'self_identity', name:'模型自报身份 (注: 路由中转站可能不准)', category:'knowledge', weight:5,
     async run() {
       const claimed = document.getElementById('claimedModel').value.trim().toLowerCase();
-      const resp = await callAPI([{role:'user',content:'What specific model are you? What company created you? Please answer directly and specifically.'}],{max_tokens:150});
+      const resp = await callAPI([{role:'user',content:'What specific model are you? What company created you? Please answer directly and specifically.'}],{max_tokens:256});
       const text = extractText(resp).toLowerCase();
       const modelWords = claimed.split(/[-_\s]+/).filter(w=>w.length>1);
       let matchCount = 0;
@@ -959,7 +959,7 @@ const probes = [
       const results = [];
       for (const item of questions) {
         try {
-          const resp = await callAPI([{role:'user',content:item.q}],{max_tokens:80});
+          const resp = await callAPI([{role:'user',content:item.q}],{max_tokens:128});
           const text = extractText(resp);
           const knows = text.length>20&&!/as of my|i don't have|i do not have|my knowledge cutoff|i cannot|i can't|i'm not able/i.test(text);
           results.push({q:item.q.substring(0,40)+'...', knows});
