@@ -766,9 +766,16 @@ async function callAPI(messages, options = {}) {
       });
       break;
   }
-  const resp = await fetch(endpoint, { method:'POST', headers, body:reqBody, signal });
-  const data = await resp.json();
-  return { status:resp.status, headers:Object.fromEntries(resp.headers.entries()), data, requestBody:JSON.parse(reqBody) };
+  const timeoutId = setTimeout(() => abortController?.abort(), 15000);
+  try {
+    const resp = await fetch(endpoint, { method:'POST', headers, body:reqBody, signal });
+    clearTimeout(timeoutId);
+    const data = await resp.json();
+    return { status:resp.status, headers:Object.fromEntries(resp.headers.entries()), data, requestBody:JSON.parse(reqBody) };
+  } catch(e) {
+    clearTimeout(timeoutId);
+    throw e;
+  }
 }
 
 function extractText(response) {
@@ -866,7 +873,9 @@ const probes = [
         ep = buildEndpoint(cfg.baseUrl, '/v1/chat/completions');
       }
       try {
+        const timeoutId = setTimeout(() => abortController?.abort(), 10000);
         const resp = await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${cfg.apiKey}`},body:JSON.stringify({model:'nonexistent-model-xyz-99999',messages:[{role:'user',content:'test'}]}),signal:abortController?.signal});
+        clearTimeout(timeoutId);
         const data = await resp.json();
         const hasOpenAI = !!(data.error&&data.error.type);
         const hasMsg = !!(data.error&&data.error.message);
