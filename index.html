@@ -704,7 +704,10 @@ function getApiConfig() {
 function buildEndpoint(baseUrl, path) {
   const url = baseUrl.replace(/\/$/, '');
   if (url.endsWith(path)) return url;
-  if (url.endsWith('/v1')) return `${url}/${path.replace(/^\//, '')}`;
+  if (url.endsWith('/v1')) {
+    const suffix = path.replace(/^\/v1\//, '');
+    return `${url}/${suffix}`;
+  }
   return `${url}${path}`;
 }
 
