@@ -546,10 +546,7 @@ body {
         <div class="card-label">支持协议</div>
         <div class="protocol-tags">
           <span class="protocol-tag">OpenAI Chat</span>
-          <span class="protocol-tag">OpenAI Responses</span>
           <span class="protocol-tag">Anthropic</span>
-          <span class="protocol-tag">DashScope</span>
-          <span class="protocol-tag">Google Gemini</span>
         </div>
       </div>
 
@@ -595,11 +592,8 @@ body {
             <span style="font-size:10px;color:var(--text3);">(选择与目标 API 匹配的格式)</span>
           </div>
           <select id="apiFormat" onchange="onFormatChange()" style="margin-top:4px;">
-            <option value="openai" selected>OpenAI Chat Completions (通用)</option>
-            <option value="openai-responses">OpenAI Responses API (新版)</option>
+            <option value="openai" selected>OpenAI Chat Completions</option>
             <option value="anthropic">Anthropic Messages API</option>
-            <option value="dashscope">DashScope / 阿里云百炼</option>
-            <option value="google">Google Gemini API</option>
           </select>
         </div>
 
@@ -651,42 +645,12 @@ body {
 <script>
 // ============ CONSTANTS ============
 const MODEL_PRESETS = [
-  // OpenAI
-  { name:'gpt-4o', provider:'OpenAI', format:'openai', baseUrl:'https://api.openai.com' },
-  { name:'gpt-4o-mini', provider:'OpenAI', format:'openai', baseUrl:'https://api.openai.com' },
-  { name:'gpt-4-turbo', provider:'OpenAI', format:'openai', baseUrl:'https://api.openai.com' },
-  { name:'gpt-4', provider:'OpenAI', format:'openai', baseUrl:'https://api.openai.com' },
-  { name:'gpt-3.5-turbo', provider:'OpenAI', format:'openai', baseUrl:'https://api.openai.com' },
-  { name:'o3-mini', provider:'OpenAI', format:'openai-responses', baseUrl:'https://api.openai.com' },
-  // Anthropic
-  { name:'claude-sonnet-4-20250514', provider:'Anthropic', format:'anthropic', baseUrl:'https://api.anthropic.com' },
-  { name:'claude-3.5-sonnet-20241022', provider:'Anthropic', format:'anthropic', baseUrl:'https://api.anthropic.com' },
-  { name:'claude-3.5-haiku-20241022', provider:'Anthropic', format:'anthropic', baseUrl:'https://api.anthropic.com' },
-  { name:'claude-3-opus-20240229', provider:'Anthropic', format:'anthropic', baseUrl:'https://api.anthropic.com' },
-  // Google
-  { name:'gemini-2.5-flash', provider:'Google', format:'google', baseUrl:'https://generativelanguage.googleapis.com' },
-  { name:'gemini-1.5-pro', provider:'Google', format:'google', baseUrl:'https://generativelanguage.googleapis.com' },
-  // DeepSeek
-  { name:'deepseek-chat (V3)', provider:'DeepSeek', format:'openai', baseUrl:'https://api.deepseek.com' },
-  { name:'deepseek-reasoner (R1)', provider:'DeepSeek', format:'openai', baseUrl:'https://api.deepseek.com' },
-  // Qwen / 通义千问
-  { name:'qwen-max', provider:'Alibaba(千问)', format:'dashscope', baseUrl:'https://dashscope.aliyuncs.com/compatible-mode' },
-  { name:'qwen-plus', provider:'Alibaba(千问)', format:'dashscope', baseUrl:'https://dashscope.aliyuncs.com/compatible-mode' },
-  { name:'qwen-turbo', provider:'Alibaba(千问)', format:'dashscope', baseUrl:'https://dashscope.aliyuncs.com/compatible-mode' },
-  { name:'qwen3-235b-a22b', provider:'Alibaba(千问)', format:'dashscope', baseUrl:'https://dashscope.aliyuncs.com/compatible-mode' },
-  // GLM / 智谱
-  { name:'glm-4-plus', provider:'ZhipuAI(智谱)', format:'openai', baseUrl:'https://open.bigmodel.cn/api/paas/v4' },
-  { name:'glm-4-flash', provider:'ZhipuAI(智谱)', format:'openai', baseUrl:'https://open.bigmodel.cn/api/paas/v4' },
-  { name:'glm-4-air', provider:'ZhipuAI(智谱)', format:'openai', baseUrl:'https://open.bigmodel.cn/api/paas/v4' },
-  // Moonshot / Kimi
-  { name:'moonshot-v1-8k', provider:'Moonshot(Kimi)', format:'openai', baseUrl:'https://api.moonshot.cn' },
-  { name:'moonshot-v1-32k', provider:'Moonshot(Kimi)', format:'openai', baseUrl:'https://api.moonshot.cn' },
-  // MiniMax
-  { name:'minimax-abab6.5s', provider:'MiniMax', format:'openai', baseUrl:'https://api.minimax.chat' },
-  // ByteDance / 豆包
-  { name:'doubao-pro-32k', provider:'ByteDance(豆包)', format:'openai', baseUrl:'https://ark.cn-beijing.volces.com/api/v3' },
-  // xAI
-  { name:'grok-2', provider:'xAI', format:'openai', baseUrl:'https://api.x.ai' },
+  { name:'claude-opus-4-7', provider:'Anthropic', format:'anthropic', baseUrl:'https://api.anthropic.com' },
+  { name:'claude-opus-4-6', provider:'Anthropic', format:'anthropic', baseUrl:'https://api.anthropic.com' },
+  { name:'claude-sonnet-4-6', provider:'Anthropic', format:'anthropic', baseUrl:'https://api.anthropic.com' },
+  { name:'gpt-5.5', provider:'OpenAI', format:'openai', baseUrl:'https://api.openai.com' },
+  { name:'gpt-5.4', provider:'OpenAI', format:'openai', baseUrl:'https://api.openai.com' },
+  { name:'gpt-5.3-codex', provider:'OpenAI', format:'openai', baseUrl:'https://api.openai.com' },
 ];
 
 const VOCAB_MARKERS = {
@@ -840,7 +804,7 @@ const probes = [
       let matchCount = 0;
       for (const w of modelWords) { if (text.includes(w)) matchCount++; }
       const matchRatio = modelWords.length>0 ? matchCount/modelWords.length : 0;
-      const companies = ['openai','anthropic','google','meta','mistral','deepseek','深度求索','alibaba','阿里','qwen','通义','zhipu','智谱','glm','chatglm','moonshot','月之暗面','kimi','minimax','bytedance','字节','豆包'];
+      const companies = ['openai','anthropic','gpt','claude'];
       const hasCompany = companies.some(c=>text.includes(c));
       const score = Math.min(100, Math.round(matchRatio*70+(hasCompany?30:0)));
       return { score, details:{'声称模型':claimed,'模型关键词匹配':`${matchCount}/${modelWords.length}`,'包含公司/组织名':hasCompany?'是':'否','完整回复':text.substring(0,300)}, severity:score>=60?'pass':score>=30?'warn':'fail' };
@@ -906,7 +870,7 @@ const probes = [
       }
       let detectedFamily='unknown', maxC=0;
       for (const [f,c] of Object.entries(counts)) { if(c>maxC){maxC=c;detectedFamily=f;} }
-      const famMap = {gpt:'openai',o1:'openai',o3:'openai',claude:'anthropic',gemini:'google',deepseek:'deepseek',qwen:'qwen',glm:'glm',chatglm:'glm',moonshot:'kimi',kimi:'kimi',doubao:'qwen',minimax:'deepseek',grok:'openai'};
+      const famMap = {gpt:'openai',claude:'anthropic'};
       let expected='unknown';
       for (const [k,f] of Object.entries(famMap)) { if(claimed.includes(k)){expected=f;break;} }
       const matches = expected==='unknown'?null:(detectedFamily===expected);
