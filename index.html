@@ -811,7 +811,7 @@ const probes = [
     }
   },
   {
-    id:'self_identity', name:'模型自报身份', category:'knowledge', weight:15,
+    id:'self_identity', name:'模型自报身份 (注: 路由中转站可能不准)', category:'knowledge', weight:5,
     async run() {
       const claimed = document.getElementById('claimedModel').value.trim().toLowerCase();
       const resp = await callAPI([{role:'user',content:'What specific model are you? What company created you? Please answer directly and specifically.'}],{max_tokens:150});
@@ -822,8 +822,13 @@ const probes = [
       const matchRatio = modelWords.length>0 ? matchCount/modelWords.length : 0;
       const companies = ['openai','anthropic','gpt','claude'];
       const hasCompany = companies.some(c=>text.includes(c));
-      const score = Math.min(100, Math.round(matchRatio*70+(hasCompany?30:0)));
-      return { score, details:{'声称模型':claimed,'模型关键词匹配':`${matchCount}/${modelWords.length}`,'包含公司/组织名':hasCompany?'是':'否','完整回复':text.substring(0,300)}, severity:score>=60?'pass':score>=30?'warn':'fail' };
+      // Check if at least the model family matches (e.g. any GPT variant for GPT family)
+      const familyKeys = ['gpt','claude','opus','sonnet','haiku'];
+      const matchesFamily = familyKeys.some(k => claimed.includes(k) && text.includes(k));
+      let score = Math.round(matchRatio*50 + (hasCompany?25:0) + (matchesFamily?25:0));
+      score = Math.min(100, score);
+      // More lenient: routing中转站 often report parent model
+      return { score, details:{'声称模型':claimed,'模型关键词匹配':`${matchCount}/${modelWords.length}`,'包含公司/组织名':hasCompany?'是':'否','模型家族匹配':matchesFamily?'是':'否','注意':'路由中转站模型自报身份可能不准确','完整回复':text.substring(0,300)}, severity:score>=50?'pass':score>=20?'warn':'fail' };
     }
   },
   {
