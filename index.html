@@ -845,7 +845,12 @@ const probes = [
     id:'error_format', name:'错误响应格式', category:'behavior', weight:8,
     async run() {
       const cfg = getApiConfig();
-      const ep = cfg.baseUrl.endsWith('/chat/completions')?cfg.baseUrl:`${cfg.baseUrl}/v1/chat/completions`;
+      let ep;
+      if (cfg.format==='anthropic') {
+        ep = cfg.baseUrl.endsWith('/messages')?cfg.baseUrl:`${cfg.baseUrl}/v1/messages`;
+      } else {
+        ep = cfg.baseUrl.endsWith('/chat/completions')?cfg.baseUrl:`${cfg.baseUrl}/v1/chat/completions`;
+      }
       try {
         const resp = await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${cfg.apiKey}`},body:JSON.stringify({model:'nonexistent-model-xyz-99999',messages:[{role:'user',content:'test'}]}),signal:abortController?.signal});
         const data = await resp.json();
