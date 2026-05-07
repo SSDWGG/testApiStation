@@ -713,7 +713,7 @@ function buildEndpoint(baseUrl, path) {
 
 async function callAPI(messages, options = {}) {
   const cfg = getApiConfig();
-  const defaults = { model: cfg.model, max_tokens: 256, temperature: 0 };
+  const defaults = { model: cfg.model, max_tokens: 256 };
   const body = { ...defaults, ...options, messages };
   const signal = abortController?.signal;
   let endpoint, headers, reqBody;
