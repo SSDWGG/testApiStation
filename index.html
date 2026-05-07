@@ -612,9 +612,7 @@ body {
           </div>
         </div>
 
-        <div class="baseurl-hint" id="baseurlHint" style="margin-bottom:12px;"></div>
-
-        <div style="display:flex;gap:8px;">
+<div style="display:flex;gap:8px;">
           <button class="btn btn-primary" id="runBtn" onclick="startDetection()">
             开始检测 <span style="opacity:0.7;">→</span>
           </button>
@@ -1124,10 +1122,8 @@ function onModelChipClick(chip) {
   const baseUrl = decodeURIComponent(chip.dataset.baseurl);
   document.getElementById('claimedModel').value = modelName;
   document.getElementById('apiFormat').value = format;
-  document.getElementById('baseUrl').value = baseUrl;
   document.querySelectorAll('.model-chip').forEach(c=>c.classList.remove('selected'));
   chip.classList.add('selected');
-  updateBaseurlHint(baseUrl);
 }
 
 function onModelInputChange() {
@@ -1135,30 +1131,16 @@ function onModelInputChange() {
   const preset = MODEL_PRESETS.find(p=>p.name===val);
   if (preset) {
     document.getElementById('apiFormat').value = preset.format;
-    document.getElementById('baseUrl').value = preset.baseUrl;
-    updateBaseurlHint(preset.baseUrl);
     document.querySelectorAll('.model-chip').forEach(c=>{
       const cm = decodeURIComponent(c.dataset.model);
       c.classList.toggle('selected', cm===val);
     });
   } else {
-    updateBaseurlHint(null);
     document.querySelectorAll('.model-chip').forEach(c=>c.classList.remove('selected'));
   }
 }
 
 function onFormatChange() {}
-
-function updateBaseurlHint(baseUrl) {
-  const el = document.getElementById('baseurlHint');
-  if (el && baseUrl) {
-    el.innerHTML = `✅ 已自动填充端点: <span style="font-family:monospace;font-size:10px;">${baseUrl}</span>`;
-    el.style.color = 'var(--green)';
-  } else if (el) {
-    el.innerHTML = '⚠ 未匹配到预设模型，请手动输入API端点地址';
-    el.style.color = 'var(--yellow)';
-  }
-}
 
 // ============ MODE SWITCHING ============
 document.addEventListener('DOMContentLoaded', ()=>{
