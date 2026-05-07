@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>真测 Ztest — AI 中转站可信度验证</title>
+<title>TestApiStation — AI 中转站可信度验证</title>
 <meta name="description" content="一次提交，多维验证。通过 10 项黑盒探针，从协议、身份、能力、安全、性能五大维度，为 AI API 中转站做透明、可解释的技术体检。">
 <style>
 :root {
@@ -479,9 +479,8 @@ body {
 <header class="header">
   <div class="header-inner">
     <a href="/" class="logo">
-      <span class="logo-icon">测</span>
-      <span class="logo-text">中转站检测</span>
-      <span class="logo-domain">TestApiStation</span>
+      <span class="logo-icon">T</span>
+      <span class="logo-text">TestApiStation</span>
     </a>
     <span class="header-version">v2.0</span>
   </div>
@@ -546,6 +545,7 @@ body {
         <div class="card-label">支持协议</div>
         <div class="protocol-tags">
           <span class="protocol-tag">OpenAI Chat</span>
+          <span class="protocol-tag">OpenAI Responses</span>
           <span class="protocol-tag">Anthropic</span>
         </div>
       </div>
@@ -593,6 +593,7 @@ body {
           </div>
           <select id="apiFormat" onchange="onFormatChange()" style="margin-top:4px;">
             <option value="openai" selected>OpenAI Chat Completions</option>
+            <option value="openai-responses">OpenAI Responses API</option>
             <option value="anthropic">Anthropic Messages API</option>
           </select>
         </div>
