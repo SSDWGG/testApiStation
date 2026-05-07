@@ -650,6 +650,9 @@ const MODEL_PRESETS = [
   { name:'gpt-5.5', provider:'OpenAI', format:'openai', baseUrl:'https://api.openai.com' },
   { name:'gpt-5.4', provider:'OpenAI', format:'openai', baseUrl:'https://api.openai.com' },
   { name:'gpt-5.3-codex', provider:'OpenAI', format:'openai', baseUrl:'https://api.openai.com' },
+  { name:'deepseek-v4-pro', provider:'DeepSeek', format:'openai', baseUrl:'https://api.deepseek.com' },
+  { name:'deepseek-chat (V3)', provider:'DeepSeek', format:'openai', baseUrl:'https://api.deepseek.com' },
+  { name:'deepseek-reasoner (R1)', provider:'DeepSeek', format:'openai', baseUrl:'https://api.deepseek.com' },
 ];
 
 const VOCAB_MARKERS = {
@@ -820,10 +823,10 @@ const probes = [
       let matchCount = 0;
       for (const w of modelWords) { if (text.includes(w)) matchCount++; }
       const matchRatio = modelWords.length>0 ? matchCount/modelWords.length : 0;
-      const companies = ['openai','anthropic','gpt','claude'];
+      const companies = ['openai','anthropic','gpt','claude','deepseek','深度求索'];
       const hasCompany = companies.some(c=>text.includes(c));
       // Check if at least the model family matches (e.g. any GPT variant for GPT family)
-      const familyKeys = ['gpt','claude','opus','sonnet','haiku'];
+      const familyKeys = ['gpt','claude','opus','sonnet','haiku','deepseek'];
       const matchesFamily = familyKeys.some(k => claimed.includes(k) && text.includes(k));
       let score = Math.round(matchRatio*50 + (hasCompany?25:0) + (matchesFamily?25:0));
       score = Math.min(100, score);
@@ -904,7 +907,7 @@ const probes = [
       }
       let detectedFamily='unknown', maxC=0;
       for (const [f,c] of Object.entries(counts)) { if(c>maxC){maxC=c;detectedFamily=f;} }
-      const famMap = {gpt:'openai',claude:'anthropic'};
+      const famMap = {gpt:'openai',claude:'anthropic',deepseek:'deepseek'};
       let expected='unknown';
       for (const [k,f] of Object.entries(famMap)) { if(claimed.includes(k)){expected=f;break;} }
       const matches = expected==='unknown'?null:(detectedFamily===expected);
