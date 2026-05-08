@@ -485,7 +485,7 @@ body {
       <span class="logo-icon">T</span>
       <span class="logo-text">TestApiStation</span>
     </a>
-    <span class="header-version" id="headerVersion">v31</span>
+    <span class="header-version" id="headerVersion">v32</span>
   </div>
 </header>
 
@@ -644,7 +644,7 @@ body {
 <!-- Footer -->
 <footer class="footer">
   <p>仅提供技术风险评估，不构成法律意见<span class="dot">·</span>API Key 全链路不存储<span class="dot">·</span>结果仅短时缓存，不提供历史保存</p>
-  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v31</span></p>
+  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v32</span></p>
 </footer>
 
 <script>
@@ -964,7 +964,7 @@ const probes = [
     async run() {
       const resp = await callAPI([{role:'user',content:'Hi'}],{max_tokens:20});
       const d = resp.data;
-      const hasUsage = !!(d.usage&&(d.usage.prompt_tokens||d.usage.total_tokens));
+      const hasUsage = !!(d.usage&&(d.usage.prompt_tokens||d.usage.total_tokens||d.usage.input_tokens||d.usage.output_tokens));
       const hasModel = !!d.model;
       const modelMR = d.model||'';
       const claimedM = document.getElementById('claimedModel').value.trim();
