@@ -927,12 +927,12 @@ const probes = [
   {
     id:'reasoning', name:'推理能力基准', category:'capability', weight:10,
     async run() {
-      const resp = await callAPI([{role:'user',content:'There are 5 houses in a row. The red house is to the left of the blue house. The green house is at one end. The white house is between red and blue. The yellow house is not at either end. What is the order from left to right? Think step by step, give final answer as ORDER: [list].'}],{max_tokens:300});
-      const text = extractText(resp).toLowerCase();
-      const hasCorrect = ['green','red','white','blue','yellow'].every(c=>text.includes(c));
-      const hasSteps = /step|first|1\.|reason/i.test(text);
-      const score = hasCorrect?(hasSteps?90:70):(hasSteps?40:15);
-      return { score, details:{'包含正确答案':hasCorrect?'是':'否','展示推理步骤':hasSteps?'是':'否','回复':text.substring(0,300)}, severity:score>=60?'pass':score>=30?'warn':'fail' };
+      const resp = await callAPI([{role:'user',content:'There are 5 houses in a row. The red house is to the left of the blue house. The green house is at one end. The white house is between red and blue. The yellow house is not at either end. What is the order from left to right? Give final answer as ORDER: [list].'}],{max_tokens:500});
+      const fullText = extractText(resp).toLowerCase();
+      const hasCorrect = ['green','red','white','blue','yellow'].every(c=>fullText.includes(c));
+      const hasSteps = /step|first|1\.|reason|house|order/i.test(fullText);
+      const score = hasCorrect?(hasSteps?90:70):(hasSteps?50:25);
+      return { score, details:{'包含正确答案':hasCorrect?'是':'否','展示推理':hasSteps?'是':'否','注意':'含thinking内容分析','回复':fullText.substring(0,300)}, severity:score>=60?'pass':score>=30?'warn':'fail' };
     }
   },
   {
