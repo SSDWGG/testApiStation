@@ -485,7 +485,7 @@ body {
       <span class="logo-icon">T</span>
       <span class="logo-text">TestApiStation</span>
     </a>
-    <span class="header-version" id="headerVersion">v36</span>
+    <span class="header-version" id="headerVersion">v37</span>
   </div>
 </header>
 
@@ -644,7 +644,7 @@ body {
 <!-- Footer -->
 <footer class="footer">
   <p>仅提供技术风险评估，不构成法律意见<span class="dot">·</span>API Key 全链路不存储<span class="dot">·</span>结果仅短时缓存，不提供历史保存</p>
-  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v36</span></p>
+  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v37</span></p>
 </footer>
 
 <script>
@@ -988,7 +988,7 @@ const probes = [
         }
       }
       const score = Math.round(totalScore);
-      return { score, details:{...details,'题数':questions.length,'答对数':Math.round(totalScore/100*questions.length),'判据':'bat&ball概率题区分GPT3.5/4，年龄题区分计算能力'}, severity:score>=70?'pass':score>=35?'warn':'fail' };
+      return { score, details:{...details,'题数':questions.length,'答对数':Math.round(totalScore/100*questions.length),'判据':'bat&ball概率题区分GPT3.5/4，年龄题区分计算能力'}, severity:score>=67?'pass':score>=35?'warn':'fail' };
     }
   },
   {
