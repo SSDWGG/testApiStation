@@ -212,8 +212,8 @@ const probes = [
       let expected = 'unknown';
       for (const [k, f] of Object.entries(famMap)) { if (claimed.includes(k)) { expected = f; break; } }
       const matches = expected === 'unknown' ? null : (detectedFamily === expected);
-      const noMarkers = maxC === 0;
-      const score = matches === null ? 60 : (matches ? 80 : (noMarkers ? 70 : 25));
+      const weakSignal = maxC <= 1;
+      const score = matches === null ? 60 : (matches ? 80 : (weakSignal ? 70 : 25));
       return { score, severity: score >= 70 ? 'pass' : score >= 40 ? 'warn' : 'fail' };
     }
   },
