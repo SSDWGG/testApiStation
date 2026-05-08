@@ -573,7 +573,10 @@ body {
         </div>
         <div class="form-group">
           <label for="apiKey">API Key</label>
-          <input type="password" id="apiKey" placeholder="sk-...">
+          <div style="position:relative;">
+            <input type="password" id="apiKey" placeholder="sk-..." style="padding-right:36px;">
+            <button type="button" id="keyToggle" onclick="toggleKeyVisibility()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:14px;color:var(--text3);padding:2px 4px;" title="显示/隐藏 Key">👁</button>
+          </div>
         </div>
 
         <!-- Model Selection -->
@@ -876,11 +879,15 @@ const probes = [
     async run() {
       try {
         const resp = await callAPI([{role:'user',content:'Write a short paragraph about cats.'}],{max_tokens:300,stop:['cats','feline']});
+        const stopReason = extractFinishReason(resp);
+        const stopSeq = resp.data?.stop_sequence || '';
+        const stoppedByApi = stopReason==='stop_sequence' || !!stopSeq;
         const text = extractVisibleText(resp).toLowerCase();
-        const stopped = text.length<80||text.indexOf('cat')>text.length*0.5;
-        return { score:stopped?85:35, details:{'stop参数':'["cats","feline"]','响应文本':text.substring(0,200),'stop生效':stopped?'可能生效':'未生效(检查thinking)','注意':'仅分析可见文本，忽略thinking'}, severity:stopped?'pass':'warn' };
+        const stoppedHeuristic = text.length<120||text.indexOf('cat')>text.length*0.5;
+        const stopped = stoppedByApi || stoppedHeuristic;
+        return { score:stoppedByApi?90:(stoppedHeuristic?60:30), details:{'stop_reason':stopReason,'stop_sequence触发':stopSeq||'(无)','API级stop生效':stoppedByApi?'是':'否','stop参数':'["cats","feline"]','响应文本':text.substring(0,200)}, severity:stopped?'pass':'warn' };
       } catch(e) {
-        return { score:30, details:{'stop参数':'["cats","feline"]','请求结果':'API不支持stop参数或请求被拒绝','错误信息':e.message}, severity:'warn' };
+        return { score:20, details:{'stop参数':'["cats","feline"]','请求结果':'API不支持stop参数或请求被拒绝','错误信息':e.message}, severity:'warn' };
       }
     }
   },
@@ -954,13 +961,14 @@ const probes = [
       const modelMR = d.model||'';
       const claimedM = document.getElementById('claimedModel').value.trim();
       const modelMatches = modelMR.toLowerCase().includes(claimedM.toLowerCase())||claimedM.toLowerCase().includes(modelMR.toLowerCase());
+      const format = getApiConfig().format;
       let score = 0;
-      if (hasUsage) score+=30;
-      if (hasModel&&modelMatches) score+=30;
+      if (hasUsage) score+=35;
+      if (hasModel&&modelMatches) score+=35;
       if (hasModel&&!modelMatches) score+=10;
-      if (d.id) score+=20;
-      if (d.created) score+=20;
-      return { score:Math.min(100,score), details:{'包含usage':hasUsage?'是':'否','响应model字段':modelMR||'(无)','model匹配':modelMR?(modelMatches?'是':'否'):'无model字段','包含id':!!d.id?'是':'否','包含created':!!d.created?'是':'否'}, severity:score>=60?'pass':score>=30?'warn':'fail' };
+      if (d.id) score+=15;
+      if (d.created||format==='anthropic') score+=15;
+      return { score:Math.min(100,score), details:{'包含usage':hasUsage?'是':'否','响应model字段':modelMR||'(无)','model匹配':modelMR?(modelMatches?'是':'否'):'无model字段','包含id':!!d.id?'是':'否','包含created':d.created?'是':(format==='anthropic'?'否(Anthropic无此字段)':'否')}, severity:score>=60?'pass':score>=30?'warn':'fail' };
     }
   },
   {
@@ -1193,6 +1201,16 @@ function onModelInputChange() {
 }
 
 function onFormatChange() {}
+
+function toggleKeyVisibility() {
+  const input = document.getElementById('apiKey');
+  const btn = document.getElementById('keyToggle');
+  if (input.type==='password') {
+    input.type='text'; btn.textContent='🙈';
+  } else {
+    input.type='password'; btn.textContent='👁';
+  }
+}
 
 // ============ MODE SWITCHING ============
 document.addEventListener('DOMContentLoaded', ()=>{
