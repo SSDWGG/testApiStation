@@ -485,7 +485,7 @@ body {
       <span class="logo-icon">T</span>
       <span class="logo-text">TestApiStation</span>
     </a>
-    <span class="header-version" id="headerVersion">v38</span>
+    <span class="header-version" id="headerVersion">v39</span>
   </div>
 </header>
 
@@ -644,7 +644,7 @@ body {
 <!-- Footer -->
 <footer class="footer">
   <p>仅提供技术风险评估，不构成法律意见<span class="dot">·</span>API Key 全链路不存储<span class="dot">·</span>结果仅短时缓存，不提供历史保存</p>
-  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v38</span></p>
+  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v39</span></p>
 </footer>
 
 <script>
@@ -992,7 +992,7 @@ const probes = [
     }
   },
   {
-    id:'metadata', name:'响应元数据分析', category:'connectivity', weight:5,
+    id:'metadata', name:'响应元数据分析', category:'connectivity', weight:6,
     async run() {
       const resp = await callAPI([{role:'user',content:'Hi'}],{max_tokens:20});
       const d = resp.data;
@@ -1012,7 +1012,7 @@ const probes = [
     }
   },
   {
-    id:'knowledge_cutoff', name:'知识截断日期检测', category:'knowledge', weight:10,
+    id:'knowledge_cutoff', name:'知识截断日期检测', category:'knowledge', weight:11,
     async run() {
       const questions = [
         {q:'Who won the 2024 US presidential election? Answer in one sentence.'},
