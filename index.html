@@ -482,7 +482,7 @@ body {
       <span class="logo-icon">T</span>
       <span class="logo-text">TestApiStation</span>
     </a>
-    <span class="header-version" id="headerVersion">v25</span>
+    <span class="header-version" id="headerVersion">v26</span>
   </div>
 </header>
 
@@ -641,7 +641,7 @@ body {
 <!-- Footer -->
 <footer class="footer">
   <p>仅提供技术风险评估，不构成法律意见<span class="dot">·</span>API Key 全链路不存储<span class="dot">·</span>结果仅短时缓存，不提供历史保存</p>
-  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v25</span></p>
+  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v26</span></p>
 </footer>
 
 <script>
@@ -938,7 +938,8 @@ const probes = [
       let expected='unknown';
       for (const [k,f] of Object.entries(famMap)) { if(claimed.includes(k)){expected=f;break;} }
       const matches = expected==='unknown'?null:(detectedFamily===expected);
-      const score = matches===null?60:(matches?80:25);
+      const noMarkers = maxC===0;
+      const score = matches===null?60:(matches?80:(noMarkers?70:25));
       const detailLabels = {};
       for (const [f,c] of Object.entries(counts)) { detailLabels[`${f}词频`]=c; }
       return { score, details:{...detailLabels,'检测到词汇家族':`${detectedFamily}${maxC===0?'(无显著特征)':''}`,'预期家族':expected||'未知','词汇匹配':matches===null?'无法判断':(matches?'匹配':'不匹配'),'分析文本':text.substring(0,250)}, severity:score>=70?'pass':score>=40?'warn':'fail' };
