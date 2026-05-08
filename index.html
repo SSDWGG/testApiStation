@@ -785,7 +785,14 @@ function extractText(response) {
   const d = response.data;
   if (d.choices && d.choices[0]) return d.choices[0].message?.content||'';
   if (d.output && Array.isArray(d.output)) return d.output.map(c=>c.content?.map(cc=>cc.text||'').join('')).join('');
-  if (d.content && Array.isArray(d.content)) return d.content.map(c=>c.text||'').join('');
+  if (d.content && Array.isArray(d.content)) {
+    let text = '';
+    for (const c of d.content) {
+      if (c.type==='text' && c.text) text += c.text;
+      if (c.type==='thinking' && c.thinking) text += '[思考]'+c.thinking+'[/思考]';
+    }
+    return text;
+  }
   if (d.content && typeof d.content==='string') return d.content;
   if (d.candidates && d.candidates[0]) return d.candidates[0].content?.parts?.map(p=>p.text||'').join('')||'';
   return JSON.stringify(d);
@@ -850,7 +857,7 @@ const probes = [
       const resp = await callAPI([{role:'user',content:'Count from 1 to 50, one number per line. Write out each number as a word.'}],{max_tokens:80});
       const text = extractText(resp);
       const reason = extractFinishReason(resp);
-      const truncated = reason==='length';
+      const truncated = reason==='length' || reason==='max_tokens';
       const score = truncated?90:(reason==='stop'&&text.length<400?40:30);
       return { score, details:{'finish_reason':reason||'(无)','响应长度':`${text.length}字符`,'正确截断':truncated?'是':'否'}, severity:score>=70?'pass':score>=40?'warn':'fail' };
     }
@@ -961,12 +968,15 @@ const probes = [
         try {
           const resp = await callAPI([{role:'user',content:item.q}],{max_tokens:128});
           const text = extractText(resp);
-          const knows = text.length>20&&!/as of my|i don't have|i do not have|my knowledge cutoff|i cannot|i can't|i'm not able/i.test(text);
-          results.push({q:item.q.substring(0,40)+'...', knows});
-          if (knows) score+=33;
-        } catch { results.push({q:item.q.substring(0,40)+'...', knows:false}); }
+          const admitsNoKnowledge = /as of my|i don't have|i do not have|my knowledge cutoff|i cannot|i can't|i'm not able|has not yet occurred/i.test(text);
+          const knows = text.length>20 && !admitsNoKnowledge;
+          results.push({q:item.q.substring(0,40)+'...', knows, admitsNoKnowledge});
+          if (knows) score+=35;
+          else if (admitsNoKnowledge) score+=20; // Honest about cutoff, neutral
+          else score+=5; // Unclear response
+        } catch { results.push({q:item.q.substring(0,40)+'...', knows:false, admitsNoKnowledge:false}); }
       }
-      return { score:Math.min(100,score), details:Object.fromEntries(results.map(r=>[r.q,r.knows?'知道':'不知道/回避'])), severity:score>=66?'warn':'pass' };
+      return { score:Math.min(100,score), details:Object.fromEntries(results.map(r=>[r.q,r.knows?'知道':r.admitsNoKnowledge?'诚实承认不知道':'回复模糊'])), severity:'pass' };
     }
   },
 ];
