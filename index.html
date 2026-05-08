@@ -798,6 +798,15 @@ function extractText(response) {
   return JSON.stringify(d);
 }
 
+function extractVisibleText(response) {
+  const d = response.data;
+  if (d.choices && d.choices[0]) return d.choices[0].message?.content||'';
+  if (d.content && Array.isArray(d.content)) {
+    return d.content.filter(c=>c.type==='text'&&c.text).map(c=>c.text).join('');
+  }
+  return extractText(response);
+}
+
 function extractFinishReason(response) {
   const d = response.data;
   if (d.choices && d.choices[0]) return d.choices[0].finish_reason||'';
@@ -866,10 +875,10 @@ const probes = [
     id:'stop_sequences', name:'stop 序列行为', category:'behavior', weight:8,
     async run() {
       try {
-        const resp = await callAPI([{role:'user',content:'Write a short paragraph about cats.'}],{max_tokens:200,stop:['cats','feline']});
-        const text = extractText(resp).toLowerCase();
+        const resp = await callAPI([{role:'user',content:'Write a short paragraph about cats.'}],{max_tokens:300,stop:['cats','feline']});
+        const text = extractVisibleText(resp).toLowerCase();
         const stopped = text.length<80||text.indexOf('cat')>text.length*0.5;
-        return { score:stopped?85:35, details:{'stop参数':'["cats","feline"]','响应文本':text.substring(0,200),'stop生效':stopped?'可能生效':'可能未生效'}, severity:stopped?'pass':'warn' };
+        return { score:stopped?85:35, details:{'stop参数':'["cats","feline"]','响应文本':text.substring(0,200),'stop生效':stopped?'可能生效':'未生效(检查thinking)','注意':'仅分析可见文本，忽略thinking'}, severity:stopped?'pass':'warn' };
       } catch(e) {
         return { score:30, details:{'stop参数':'["cats","feline"]','请求结果':'API不支持stop参数或请求被拒绝','错误信息':e.message}, severity:'warn' };
       }
@@ -904,8 +913,8 @@ const probes = [
   {
     id:'vocabulary', name:'词汇指纹分析', category:'linguistic', weight:12,
     async run() {
-      const resp = await callAPI([{role:'user',content:'Write a detailed analysis (about 150 words) on the importance of environmental protection.'}],{max_tokens:300});
-      const text = extractText(resp).toLowerCase();
+      const resp = await callAPI([{role:'user',content:'Write a detailed analysis (about 150 words) on the importance of environmental protection.'}],{max_tokens:500});
+      const text = extractVisibleText(resp).toLowerCase();
       const claimed = document.getElementById('claimedModel').value.trim().toLowerCase();
       const counts = {};
       for (const [family, markers] of Object.entries(VOCAB_MARKERS)) {
