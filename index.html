@@ -485,7 +485,7 @@ body {
       <span class="logo-icon">T</span>
       <span class="logo-text">TestApiStation</span>
     </a>
-    <span class="header-version" id="headerVersion">v33</span>
+    <span class="header-version" id="headerVersion">v34</span>
   </div>
 </header>
 
@@ -644,7 +644,7 @@ body {
 <!-- Footer -->
 <footer class="footer">
   <p>仅提供技术风险评估，不构成法律意见<span class="dot">·</span>API Key 全链路不存储<span class="dot">·</span>结果仅短时缓存，不提供历史保存</p>
-  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v33</span></p>
+  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v34</span></p>
 </footer>
 
 <script>
@@ -824,7 +824,7 @@ function extractFinishReason(response) {
 // ============ PROBES ============
 const probes = [
   {
-    id:'connectivity', name:'连通性与基础响应', category:'connectivity', weight:10,
+    id:'connectivity', name:'连通性与基础响应 (门禁)', category:'connectivity', weight:0,
     async run() {
       const resp = await callAPI([{role:'user',content:'Hello, respond with just the word "OK".'}],{max_tokens:10});
       const text = extractText(resp);
@@ -857,7 +857,7 @@ const probes = [
     }
   },
   {
-    id:'system_prompt', name:'System Prompt 服从性', category:'behavior', weight:12,
+    id:'system_prompt', name:'System Prompt 服从性', category:'behavior', weight:18,
     async run() {
       const secret = 'XYZZY_'+Math.random().toString(36).substring(7);
       const resp = await callAPI([{role:'system',content:`You must start EVERY response with the codeword "${secret}". No exceptions.`},{role:'user',content:'Say hello in one word.'}],{max_tokens:50});
@@ -867,7 +867,7 @@ const probes = [
     }
   },
   {
-    id:'max_tokens', name:'max_tokens 截断行为', category:'behavior', weight:10,
+    id:'max_tokens', name:'max_tokens 截断行为', category:'behavior', weight:16,
     async run() {
       const resp = await callAPI([{role:'user',content:'Count from 1 to 50, one number per line. Write out each number as a word.'}],{max_tokens:80});
       const text = extractText(resp);
@@ -923,7 +923,7 @@ const probes = [
     }
   },
   {
-    id:'vocabulary', name:'词汇指纹分析', category:'linguistic', weight:12,
+    id:'vocabulary', name:'词汇指纹分析', category:'linguistic', weight:14,
     async run() {
       const resp = await callAPI([{role:'user',content:'Write a detailed analysis (about 150 words) on the importance of environmental protection.'}],{max_tokens:800});
       const visible = extractVisibleText(resp).toLowerCase();
@@ -949,7 +949,7 @@ const probes = [
     }
   },
   {
-    id:'reasoning', name:'推理能力基准', category:'capability', weight:10,
+    id:'reasoning', name:'推理能力基准', category:'capability', weight:14,
     async run() {
       const resp = await callAPI([{role:'user',content:'There are 5 houses in a row. The red house is to the left of the blue house. The green house is at one end. The white house is between red and blue. The yellow house is not at either end. What is the order from left to right? Give final answer as ORDER: [list].'}],{max_tokens:500});
       const fullText = extractText(resp).toLowerCase();
@@ -1140,10 +1140,21 @@ async function startDetection() {
         result.id = active[i].id;
         probeResults.push(result);
         updateProbeDot(i, result.severity);
+        // Gate: if connectivity fails, API is unreachable — abort all
+        if (active[i].id==='connectivity' && result.severity==='fail') {
+          running = false;
+          updateProgress(i+1, active.length, '连通性失败，API 不可达，已跳过剩余探针');
+          break;
+        }
       } catch(e) {
         if (e.name==='AbortError') break;
         probeResults.push({ id:active[i].id, score:0, severity:'fail', details:{'错误':e.message} });
         updateProbeDot(i,'fail');
+        if (active[i].id==='connectivity') {
+          running = false;
+          updateProgress(i+1, active.length, '连通性失败，API 不可达，已跳过剩余探针');
+          break;
+        }
       }
     }
   } finally { running = false; }
