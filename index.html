@@ -485,7 +485,7 @@ body {
       <span class="logo-icon">T</span>
       <span class="logo-text">TestApiStation</span>
     </a>
-    <span class="header-version" id="headerVersion">v35</span>
+    <span class="header-version" id="headerVersion">v36</span>
   </div>
 </header>
 
@@ -644,7 +644,7 @@ body {
 <!-- Footer -->
 <footer class="footer">
   <p>仅提供技术风险评估，不构成法律意见<span class="dot">·</span>API Key 全链路不存储<span class="dot">·</span>结果仅短时缓存，不提供历史保存</p>
-  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v35</span></p>
+  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v36</span></p>
 </footer>
 
 <script>
@@ -949,14 +949,46 @@ const probes = [
     }
   },
   {
-    id:'reasoning', name:'推理能力基准', category:'capability', weight:14,
+    id:'reasoning', name:'推理能力基准 (3题)', category:'capability', weight:14,
     async run() {
-      const resp = await callAPI([{role:'user',content:'There are 5 houses in a row. The red house is to the left of the blue house. The green house is at one end. The white house is between red and blue. The yellow house is not at either end. What is the order from left to right? Give final answer as ORDER: [list].'}],{max_tokens:500});
-      const fullText = extractText(resp).toLowerCase();
-      const hasCorrect = ['green','red','white','blue','yellow'].every(c=>fullText.includes(c));
-      const hasSteps = /step|first|1\.|reason|house|order/i.test(fullText);
-      const score = hasCorrect?(hasSteps?90:70):(hasSteps?50:25);
-      return { score, details:{'包含正确答案':hasCorrect?'是':'否','展示推理':hasSteps?'是':'否','注意':'含thinking内容分析','回复':fullText.substring(0,300)}, severity:score>=60?'pass':score>=30?'warn':'fail' };
+      const questions = [
+        {
+          id:'math',
+          text:'A bat and a ball cost $1.10 in total. The bat costs $1.00 more than the ball. How much does the ball cost? Answer with just the number in cents.',
+          check(t){ return /5\s*(cents|¢)?/.test(t) || t.includes('0.05') || t.includes('.05'); },
+          explain:'正确答案是5美分($0.05)。低级模型常误答10美分，说明跳过了系统2思维。'
+        },
+        {
+          id:'probability',
+          text:'You flip two coins. Given that at least one is heads, what is the probability both are heads? Answer as a fraction.',
+          check(t){ return /1\/3|1 \/ 3|1\/3rd|one.?third/.test(t); },
+          explain:'正确答案是1/3（等可能HH/HT/TH）。低级模型常答1/2，误把条件概率当独立事件。'
+        },
+        {
+          id:'word_reasoning',
+          text:'A father is 36 years older than his daughter. In 4 years, the father will be 4 times as old as the daughter. How old is the daughter now? Answer with just the number.',
+          check(t){ return /\b8\b/.test(t); },
+          explain:'设女儿x，父亲x+36。4年后：x+40=4(x+4) → x+40=4x+16 → 3x=24 → x=8。中级模型常在这个题出计算错误。'
+        },
+      ];
+      let totalScore = 0;
+      const details = {};
+      for (const q of questions) {
+        try {
+          const resp = await callAPI([{role:'user',content:q.text}],{max_tokens:600});
+          const fullText = extractText(resp).toLowerCase();
+          const visible = extractVisibleText(resp).toLowerCase();
+          const text = visible.length > 20 ? visible : fullText;
+          const correct = q.check(text);
+          details[q.id] = correct?'正确':'错误';
+          if (correct) totalScore += 100/questions.length;
+          details[q.id+'_回复'] = text.substring(0,120);
+        } catch(e) {
+          details[q.id] = '请求失败: '+e.message;
+        }
+      }
+      const score = Math.round(totalScore);
+      return { score, details:{...details,'题数':questions.length,'答对数':Math.round(totalScore/100*questions.length),'判据':'bat&ball概率题区分GPT3.5/4，年龄题区分计算能力'}, severity:score>=70?'pass':score>=35?'warn':'fail' };
     }
   },
   {
