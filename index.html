@@ -485,7 +485,7 @@ body {
       <span class="logo-icon">T</span>
       <span class="logo-text">TestApiStation</span>
     </a>
-    <span class="header-version" id="headerVersion">v39</span>
+    <span class="header-version" id="headerVersion">v40</span>
   </div>
 </header>
 
@@ -644,7 +644,7 @@ body {
 <!-- Footer -->
 <footer class="footer">
   <p>仅提供技术风险评估，不构成法律意见<span class="dot">·</span>API Key 全链路不存储<span class="dot">·</span>结果仅短时缓存，不提供历史保存</p>
-  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v39</span></p>
+  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v40</span></p>
 </footer>
 
 <script>
@@ -1046,6 +1046,11 @@ function getActiveProbes() {
 function calculateConfidence(results) {
   const valid = results.filter(r=>r&&typeof r.score==='number');
   if (valid.length===0) return { score:0, verdict:'error', className:'verdict-uncertain', label:'无法评估' };
+  // Connectivity gate: if only the connectivity probe ran and it failed
+  const connResult = results.find(r=>r.id==='connectivity');
+  if (connResult && connResult.severity==='fail' && valid.length<=1) {
+    return { score:0, verdict:'连通失败', className:'verdict-uncertain', label:'API 不可达，无法进行模型检测。请检查端点地址、网络连接和 API Key。' };
+  }
   let totalW=0, weightedS=0;
   for (const r of valid) {
     const p = probes.find(p=>p.id===r.id);
