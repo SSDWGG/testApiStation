@@ -482,7 +482,7 @@ body {
       <span class="logo-icon">T</span>
       <span class="logo-text">TestApiStation</span>
     </a>
-    <span class="header-version" id="headerVersion">v24</span>
+    <span class="header-version" id="headerVersion">v25</span>
   </div>
 </header>
 
@@ -641,7 +641,7 @@ body {
 <!-- Footer -->
 <footer class="footer">
   <p>仅提供技术风险评估，不构成法律意见<span class="dot">·</span>API Key 全链路不存储<span class="dot">·</span>结果仅短时缓存，不提供历史保存</p>
-  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v24</span></p>
+  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v25</span></p>
 </footer>
 
 <script>
@@ -882,10 +882,12 @@ const probes = [
         const stopReason = extractFinishReason(resp);
         const stopSeq = resp.data?.stop_sequence || '';
         const stoppedByApi = stopReason==='stop_sequence' || !!stopSeq;
+        const finishedNaturally = stopReason==='end_turn';
         const text = extractVisibleText(resp).toLowerCase();
         const stoppedHeuristic = text.length<120||text.indexOf('cat')>text.length*0.5;
-        const stopped = stoppedByApi || stoppedHeuristic;
-        return { score:stoppedByApi?90:(stoppedHeuristic?60:30), details:{'stop_reason':stopReason,'stop_sequence触发':stopSeq||'(无)','API级stop生效':stoppedByApi?'是':'否','stop参数':'["surprisingly","interestingly","notably","remarkably"]','响应文本':text.substring(0,200)}, severity:stopped?'pass':'warn' };
+        const stopped = stoppedByApi || finishedNaturally || stoppedHeuristic;
+        const score = stoppedByApi?90:(finishedNaturally?80:(stoppedHeuristic?60:30));
+        return { score, details:{'stop_reason':stopReason,'stop_sequence触发':stopSeq||'(无)','API级stop生效':stoppedByApi?'是':'否','自然结束(end_turn)':finishedNaturally?'是':'否','stop参数':'["surprisingly","interestingly","notably","remarkably"]','响应文本':text.substring(0,200)}, severity:stopped?'pass':'warn' };
       } catch(e) {
         return { score:20, details:{'stop参数':'["surprisingly","interestingly","notably","remarkably"]','请求结果':'API不支持stop参数或请求被拒绝','错误信息':e.message}, severity:'warn' };
       }
