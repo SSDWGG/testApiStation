@@ -482,7 +482,7 @@ body {
       <span class="logo-icon">T</span>
       <span class="logo-text">TestApiStation</span>
     </a>
-    <span class="header-version" id="headerVersion">v23</span>
+    <span class="header-version" id="headerVersion">v24</span>
   </div>
 </header>
 
@@ -641,7 +641,7 @@ body {
 <!-- Footer -->
 <footer class="footer">
   <p>仅提供技术风险评估，不构成法律意见<span class="dot">·</span>API Key 全链路不存储<span class="dot">·</span>结果仅短时缓存，不提供历史保存</p>
-  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v23</span></p>
+  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v24</span></p>
 </footer>
 
 <script>
@@ -878,16 +878,16 @@ const probes = [
     id:'stop_sequences', name:'stop 序列行为', category:'behavior', weight:8,
     async run() {
       try {
-        const resp = await callAPI([{role:'user',content:'Write a short paragraph about cats.'}],{max_tokens:300,stop:['cats','feline']});
+        const resp = await callAPI([{role:'user',content:'Write a short paragraph about cats.'}],{max_tokens:300,stop:['surprisingly','interestingly','notably','remarkably']});
         const stopReason = extractFinishReason(resp);
         const stopSeq = resp.data?.stop_sequence || '';
         const stoppedByApi = stopReason==='stop_sequence' || !!stopSeq;
         const text = extractVisibleText(resp).toLowerCase();
         const stoppedHeuristic = text.length<120||text.indexOf('cat')>text.length*0.5;
         const stopped = stoppedByApi || stoppedHeuristic;
-        return { score:stoppedByApi?90:(stoppedHeuristic?60:30), details:{'stop_reason':stopReason,'stop_sequence触发':stopSeq||'(无)','API级stop生效':stoppedByApi?'是':'否','stop参数':'["cats","feline"]','响应文本':text.substring(0,200)}, severity:stopped?'pass':'warn' };
+        return { score:stoppedByApi?90:(stoppedHeuristic?60:30), details:{'stop_reason':stopReason,'stop_sequence触发':stopSeq||'(无)','API级stop生效':stoppedByApi?'是':'否','stop参数':'["surprisingly","interestingly","notably","remarkably"]','响应文本':text.substring(0,200)}, severity:stopped?'pass':'warn' };
       } catch(e) {
-        return { score:20, details:{'stop参数':'["cats","feline"]','请求结果':'API不支持stop参数或请求被拒绝','错误信息':e.message}, severity:'warn' };
+        return { score:20, details:{'stop参数':'["surprisingly","interestingly","notably","remarkably"]','请求结果':'API不支持stop参数或请求被拒绝','错误信息':e.message}, severity:'warn' };
       }
     }
   },
@@ -920,8 +920,10 @@ const probes = [
   {
     id:'vocabulary', name:'词汇指纹分析', category:'linguistic', weight:12,
     async run() {
-      const resp = await callAPI([{role:'user',content:'Write a detailed analysis (about 150 words) on the importance of environmental protection.'}],{max_tokens:500});
-      const text = extractVisibleText(resp).toLowerCase();
+      const resp = await callAPI([{role:'user',content:'Write a detailed analysis (about 150 words) on the importance of environmental protection.'}],{max_tokens:800});
+      const visible = extractVisibleText(resp).toLowerCase();
+      const full = extractText(resp).toLowerCase();
+      const text = visible.length > 100 ? visible : full;
       const claimed = document.getElementById('claimedModel').value.trim().toLowerCase();
       const counts = {};
       for (const [family, markers] of Object.entries(VOCAB_MARKERS)) {
