@@ -4,7 +4,11 @@ AI 中转站模型真伪检测工具。通过 10 项黑盒探针，从协议、�
 
 ## 在线地址
 
-**[ssdwgg.github.io/testApiStation](https://ssdwgg.github.io/testApiStation/)**
+| 端点 | 地址 |
+|------|------|
+| 主域名 (VPS) | **[testapi.ssdwgg.site](https://testapi.ssdwgg.site)** |
+| 备用域名 (VPS) | **[testapi.aiwgg.cn](https://testapi.aiwgg.cn)** |
+| GitHub Pages | **[ssdwgg.github.io/testApiStation](https://ssdwgg.github.io/testApiStation/)**
 
 ## 支持的模型
 
