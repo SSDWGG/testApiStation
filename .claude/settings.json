@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -w '\\\\nHTTP:%{http_code}' -X POST https://api.deepseek.com/anthropic/v1/messages -H 'content-type: application/json' -H 'x-api-key: sk-4f5e54e7f2084b2b8ed0961e6df2162a' -H 'anthropic-version: 2023-06-01' -d '{\"model\":\"deepseek-v4-pro\",\"max_tokens\":10,\"messages\":[{\"role\":\"user\",\"content\":\"Hello, respond with just the word \\\\\"OK\\\\\".\"}]}')",
+      "Bash(git add *)",
+      "Bash(git push *)",
+      "Bash(sshpass -p 'Ryw123123' ssh -o StrictHostKeyChecking=accept-new root@124.223.119.218 \"cat /etc/os-release | head -3\")"
+    ]
+  }
+}

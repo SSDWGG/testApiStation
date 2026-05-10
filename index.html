@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>TestApiStation — AI 中转站可信度验证</title>
+<meta name="description" content="一次提交，多维验证。通过 10 项黑盒探针，从协议、身份、能力、安全、性能五大维度，为 AI API 中转站做透明、可解释的技术体检。">
+<style>
+:root {
+  --bg: #ffffff;
+  --surface: #f8f9fb;
+  --surface2: #f1f3f7;
+  --border: #e5e7ec;
+  --text: #1a1c20;
+  --text2: #6b7080;
+  --text3: #9ca0ae;
+  --accent: #1a1c20;
+  --accent2: #4f46e5;
+  --green: #16a34a;
+  --green-bg: #f0fdf4;
+  --yellow: #ca8a04;
+  --yellow-bg: #fefce8;
+  --red: #dc2626;
+  --red-bg: #fef2f2;
+  --amber: #d97706;
+  --amber-bg: #fffbeb;
+  --amber-border: #fde68a;
+  --sky: #0284c7;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.header-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+.logo-icon {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: #1a1c20;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+.logo-icon:hover { transform: scale(1.05) rotate(3deg); }
+.logo-text { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
+.logo-domain { font-size: 13px; color: var(--text2); font-family: 'SF Mono','Fira Code','Cascadia Code',monospace; margin-left: 2px; }
+.header-version { font-size: 11px; color: var(--text3); font-family: monospace; }
+
+/* Warning Banner */
+.warning-banner {
+  border-bottom: 1px solid var(--amber-border);
+  background: var(--amber-bg);
+}
+.warning-banner-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--amber);
+  line-height: 1.5;
+}
+
+/* Main */
+.main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+}
+
+/* Hero */
+.hero { margin-bottom: 20px; animation: fadeUp 0.5s ease; }
+.hero-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-family: monospace;
+  color: var(--text2);
+}
+.hero-breadcrumb strong { color: var(--text); font-weight: 600; }
+.hero-title-row {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+.hero h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.03em; }
+@media (max-width: 640px) { .hero h1 { font-size: 1.4rem; } }
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 500;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text2);
+  white-space: nowrap;
+}
+.hero-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+.hero p { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+/* Promo card */
+.promo-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(14,165,233,0.5);
+  background: linear-gradient(to right, rgba(14,165,233,0.08), rgba(6,182,212,0.06), rgba(99,102,241,0.06));
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0c4a6e;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.promo-card:hover { border-color: rgba(14,165,233,0.8); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.promo-card .promo-tag {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #0369a1;
+}
+
+/* Grid */
+.grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 16px; animation: fadeUp 0.5s ease 60ms both; }
+@media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+.card-label {
+  font-size: 10px;
+  font-family: monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text2);
+  margin-bottom: 10px;
+}
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.feature-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+.feature-title { font-size: 12px; font-weight: 500; }
+.feature-desc { font-size: 10px; color: var(--text2); margin-top: 2px; line-height: 1.3; }
+
+.safety-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text2); margin-bottom: 6px; }
+.safety-icon { font-size: 13px; flex-shrink: 0; }
+
+.protocol-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.protocol-tag {
+  font-size: 10px;
+  font-family: monospace;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+}
+
+.contact-card {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--amber-border);
+  background: rgba(255,251,235,0.6);
+  padding: 12px 16px;
+  font-size: 11px;
+  color: var(--amber);
+  line-height: 1.5;
+}
+.contact-card .qq {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 6px;
+  border: 2px solid #f59e0b;
+  background: #fef3c7;
+  padding: 2px 10px;
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #92400e;
+}
+
+/* Form */
+.form-card { padding: 18px; }
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-size: 11px; font-weight: 500; margin-bottom: 4px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-family: monospace;
+  color: var(--text);
+  outline: none;
+  transition: all 0.15s;
+}
+.form-group input:focus, .form-group select:focus {
+  border-color: var(--text);
+  background: var(--bg);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.04);
+}
+.form-group input::placeholder { color: var(--text3); }
+
+.model-section { margin-bottom: 12px; }
+.model-section .model-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.model-input-row label { font-size: 11px; font-weight: 500; white-space: nowrap; }
+.model-input-row input { flex: 1; max-width: 200px; }
+.model-chips { margin-top: 6px; }
+.model-chip-group { margin-bottom: 6px; }
+.model-chip-group-label { font-size: 9px; font-weight: 500; color: var(--text2); margin-bottom: 3px; display: block; }
+.model-chips-list { display: flex; gap: 4px; flex-wrap: wrap; }
+.model-chip {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.model-chip:hover { border-color: rgba(0,0,0,0.2); color: var(--text); }
+.model-chip.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.mode-buttons { display: flex; gap: 6px; margin-top: 6px; }
+.mode-btn {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.mode-btn:hover { border-color: rgba(0,0,0,0.2); }
+.mode-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+.mode-btn .mode-title { font-size: 11px; font-weight: 500; }
+.mode-btn .mode-desc { font-size: 10px; margin-top: 2px; opacity: 0.7; }
+.mode-btn.selected .mode-desc { color: rgba(255,255,255,0.7); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
+.btn-primary {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  padding: 12px;
+}
+.btn-primary:hover { opacity: 0.9; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn-outline:hover { background: var(--surface2); }
+
+.baseurl-hint { font-size: 10px; margin-top: 2px; transition: all 0.2s; }
+
+/* Progress */
+.progress-section { display: none; }
+.progress-section.active { display: block; }
+.progress-bar-outer { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; margin: 12px 0; }
+.progress-bar-inner { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s ease; width: 0%; }
+.probe-dots { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.probe-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: all 0.3s; }
+.probe-dot.running { background: var(--accent2); animation: pulse 1s infinite; }
+.probe-dot.pass { background: var(--green); }
+.probe-dot.warn { background: var(--yellow); }
+.probe-dot.fail { background: var(--red); }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* Results */
+.results-section { display: none; margin-top: 20px; }
+.results-section.active { display: block; animation: fadeUp 0.4s ease; }
+
+.verdict-card {
+  text-align: center;
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 16px;
+}
+.verdict-genuine { background:var(--green-bg); border:1px solid #bbf7d0; }
+.verdict-likely-genuine { background:#f0fdf4; border:1px solid #bbf7d0; }
+.verdict-uncertain { background:var(--yellow-bg); border:1px solid #fde68a; }
+.verdict-suspicious { background:#fff7ed; border:1px solid #fed7aa; }
+.verdict-fake { background:var(--red-bg); border:1px solid #fecaca; }
+
+.verdict-label { font-size: 10px; font-weight: 500; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
+.verdict-name { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+.verdict-sub { font-size: 12px; color: var(--text2); }
+
+/* Gauge */
+.gauge-wrap { display: flex; justify-content: center; margin: 12px 0; }
+.gauge { position: relative; width: 160px; height: 88px; overflow: hidden; }
+.gauge-bg {
+  width: 160px; height: 80px;
+  border-radius: 80px 80px 0 0;
+  background: conic-gradient(from 180deg, var(--red) 0deg 36deg, #f97316 36deg 60deg, var(--yellow) 60deg 120deg, #84cc16 120deg 144deg, var(--green) 144deg 180deg);
+  mask: radial-gradient(circle at 50% 100%, transparent 48px, black 49px);
+  -webkit-mask: radial-gradient(circle at 50% 100%, transparent 48px, black 49px);
+}
+.gauge-needle {
+  position: absolute; bottom: 0; left: 50%; width: 3px; height: 44px;
+  background: var(--text); border-radius: 2px;
+  transform-origin: bottom center; transform: translateX(-50%) rotate(-90deg);
+  transition: transform 1s cubic-bezier(0.4,0,0.2,1);
+}
+.gauge-center {
+  position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%);
+  width: 12px; height: 12px; background: var(--text); border-radius: 50%;
+}
+.gauge-score { text-align: center; font-size: 2.5rem; font-weight: 800; margin-top: -6px; }
+.gauge-unit { font-size: 0.8rem; color: var(--text2); font-weight: 400; }
+
+/* Stats row */
+.stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap:8px; margin-bottom:16px; }
+.stat-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px; text-align:center; }
+.stat-value { font-size:1.3rem; font-weight:700; }
+.stat-label { font-size:10px; color:var(--text2); margin-top:2px; }
+
+/* Probe cards */
+.probe-result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+.probe-result-header {
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.probe-result-header:hover { background: var(--bg); }
+.probe-result-header .pr-left { display: flex; align-items: center; gap: 10px; }
+.pr-status { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+.pr-status.pass { background: rgba(22,163,74,0.1); color: var(--green); }
+.pr-status.warn { background: rgba(202,138,4,0.1); color: var(--yellow); }
+.pr-status.fail { background: rgba(220,38,38,0.1); color: var(--red); }
+.pr-score { font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 12px; }
+.pr-score.high { background: rgba(22,163,74,0.1); color: var(--green); }
+.pr-score.mid { background: rgba(202,138,4,0.1); color: var(--yellow); }
+.pr-score.low { background: rgba(220,38,38,0.1); color: var(--red); }
+.pr-arrow { color: var(--text3); font-size: 10px; transition: transform 0.2s; }
+.probe-result-body {
+  display: none;
+  padding: 0 14px 14px 44px;
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+.probe-result-body.open { display: block; }
+.probe-result-body .detail-row { display: flex; justify-content: space-between; padding: 3px 0; }
+.probe-result-body .detail-key { color: var(--text2); }
+.probe-result-body .detail-val { color: var(--text); font-weight: 500; }
+.probe-result-body .resp-preview {
+  background: var(--bg); border-radius: var(--radius); padding: 8px 10px;
+  margin-top: 6px; font-size: 10px; font-family: monospace; max-height: 120px;
+  overflow-y: auto; white-space: pre-wrap; word-break: break-word; color: var(--text2);
+}
+
+/* Footer */
+.footer {
+  border-top: 1px solid rgba(0,0,0,0.06);
+  margin-top: 60px;
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text2);
+}
+.footer p { margin-bottom: 4px; }
+.footer .dot { margin: 0 6px; color: var(--text3); }
+
+@media (max-width: 640px) {
+  .stats-row { grid-template-columns: repeat(2,1fr); }
+  .hero-title-row { flex-direction: column; gap: 4px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <span class="logo-icon">T</span>
+      <span class="logo-text">TestApiStation</span>
+    </a>
+    <span class="header-version" id="headerVersion">v43</span>
+  </div>
+</header>
+
+<!-- Warning Banner -->
+<div class="warning-banner">
+  <div class="warning-banner-inner">
+    检测结果仅供技术参考，不构成任何担保或承诺。请使用<strong>临时 Key</strong> 进行测试，避免主力密钥泄露风险。本站不存储密钥，不对检测结果及由此产生的任何后果承担责任。
+  </div>
+</div>
+
+<main class="main">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-breadcrumb"><strong>TestApiStation</strong><span>/</span><span>detector</span></div>
+    <div class="hero-title-row">
+      <h1>AI 中转站<span style="background:linear-gradient(135deg,var(--accent2),#9333ea);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">可信度验证</span></h1>
+      <span class="hero-badge"><span class="dot"></span>AI检测 · 零存储 · 纯前端</span>
+    </div>
+    <p>输入中转站地址和 Key，10 项黑盒探针多维度检测真实性和可靠性。</p>
+  </section>
+
+  <!-- Grid: sidebar + form -->
+  <div class="grid">
+
+    <!-- Sidebar -->
+    <aside style="display:flex;flex-direction:column;gap:12px;">
+
+      <!-- Detection Capabilities -->
+      <div class="card">
+        <div class="card-label">检测能力</div>
+        <div class="feature-item">
+          <div class="feature-icon">🛡</div>
+          <div><div class="feature-title">10 项探针</div><div class="feature-desc">协议、身份、能力、安全、性能多维检测</div></div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">⚡</div>
+          <div><div class="feature-title">低成本</div><div class="feature-desc">单次仅 10 次 API 调用</div></div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">👁</div>
+          <div><div class="feature-title">可解释</div><div class="feature-desc">每个维度给出证据链和置信度</div></div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🔒</div>
+          <div><div class="feature-title">零存储</div><div class="feature-desc">API Key 全链路不落盘，纯浏览器端运行</div></div>
+        </div>
+      </div>
+
+      <!-- Safety -->
+      <div class="card">
+        <div class="card-label">安全承诺</div>
+        <div class="safety-item"><span class="safety-icon">✓</span> Key 仅用于本次检测，浏览器直连目标 API</div>
+        <div class="safety-item"><span class="safety-icon">✓</span> 不保存历史报告，不记录敏感日志</div>
+        <div class="safety-item"><span class="safety-icon">✓</span> 纯前端静态页面，无服务端数据收集</div>
+      </div>
+
+      <!-- Supported Protocols -->
+      <div class="card">
+        <div class="card-label">支持协议</div>
+        <div class="protocol-tags">
+          <span class="protocol-tag">OpenAI Chat</span>
+          <span class="protocol-tag">OpenAI Responses</span>
+          <span class="protocol-tag">Anthropic</span>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <div class="contact-card">
+        <div style="margin-bottom:6px;">当前为测试版本，如有问题及意见欢迎联系：</div>
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;">
+          <span style="font-size:10px;font-weight:500;">邮箱</span>
+          <a href="mailto:1982549567@qq.com" style="font-size:12px;font-weight:700;color:#92400e;">1982549567@qq.com</a>
+          <span style="color:var(--text3);">|</span>
+          <span style="font-size:10px;font-weight:500;">QQ</span>
+          <span class="qq">1982549567</span>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Form -->
+    <div>
+      <div class="card form-card" id="configCard">
+        <div class="form-group">
+          <label for="baseUrl">Endpoint URL</label>
+          <input type="text" id="baseUrl" placeholder="https://api.example.com" value="https://api.openai.com">
+        </div>
+        <div class="form-group">
+          <label for="apiKey">API Key</label>
+          <div style="position:relative;">
+            <input type="password" id="apiKey" placeholder="sk-..." style="padding-right:36px;">
+            <button type="button" id="keyToggle" onclick="toggleKeyVisibility()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:14px;color:var(--text3);padding:2px 4px;" title="显示/隐藏 Key">👁</button>
+          </div>
+        </div>
+
+        <!-- Model Selection -->
+        <div class="model-section">
+          <div class="model-input-row">
+            <label for="claimedModel">检测模型</label>
+            <input type="text" id="claimedModel" placeholder="模型 ID 或从下方选择..." list="modelDatalist" onchange="onModelInputChange()">
+            <datalist id="modelDatalist"></datalist>
+          </div>
+          <div class="model-chips" id="modelChips"></div>
+        </div>
+
+        <div class="form-group">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <label for="apiFormat" style="margin-bottom:0;">API 协议格式</label>
+            <span style="font-size:10px;color:var(--text3);">(选择与目标 API 匹配的格式)</span>
+          </div>
+          <select id="apiFormat" onchange="onFormatChange()" style="margin-top:4px;">
+            <option value="openai" selected>OpenAI Chat Completions</option>
+            <option value="openai-responses">OpenAI Responses API</option>
+            <option value="anthropic">Anthropic Messages API</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>检测模式</label>
+          <div class="mode-buttons" id="modeButtons">
+            <button type="button" class="mode-btn selected" data-mode="full">
+              <div class="mode-title">完整检测</div>
+              <div class="mode-desc">10 项深度检测</div>
+            </button>
+            <button type="button" class="mode-btn" data-mode="quick">
+              <div class="mode-title">快速检测</div>
+              <div class="mode-desc">5 项核心检测</div>
+            </button>
+          </div>
+        </div>
+
+<div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" id="runBtn" onclick="startDetection()">
+            开始检测 <span style="opacity:0.7;">→</span>
+          </button>
+          <button class="btn btn-outline" id="stopBtn" onclick="stopDetection()" style="display:none;">停止</button>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-section card" id="progressSection" style="margin-top:12px;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px;">检测进行中...</div>
+        <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar"></div></div>
+        <div style="font-size:11px;color:var(--text2);" id="progressText">正在初始化...</div>
+        <div class="probe-dots" id="probeDots"></div>
+      </div>
+
+      <!-- Results -->
+      <div class="results-section" id="resultsSection"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>仅提供技术风险评估，不构成法律意见<span class="dot">·</span>API Key 全链路不存储<span class="dot">·</span>结果仅短时缓存，不提供历史保存</p>
+  <p style="font-size:10px;color:var(--text3);">TestApiStation · AI开发 · 专注模型测试 · 免费使用<span class="dot">·</span>Build <span id="footerVersion">v43</span></p>
+</footer>
+
+<script>
+// ============ CONSTANTS ============
+const MODEL_PRESETS = [
+  { name:'claude-opus-4-7', provider:'Anthropic', format:'anthropic', baseUrl:'https://api.anthropic.com' },
+  { name:'claude-opus-4-6', provider:'Anthropic', format:'anthropic', baseUrl:'https://api.anthropic.com' },
+  { name:'claude-sonnet-4-6', provider:'Anthropic', format:'anthropic', baseUrl:'https://api.anthropic.com' },
+  { name:'gpt-5.5', provider:'OpenAI', format:'openai', baseUrl:'https://api.openai.com' },
+  { name:'gpt-5.4', provider:'OpenAI', format:'openai', baseUrl:'https://api.openai.com' },
+  { name:'gpt-5.3-codex', provider:'OpenAI', format:'openai', baseUrl:'https://api.openai.com' },
+  { name:'deepseek-v4-pro', provider:'DeepSeek', format:'openai', baseUrl:'https://api.deepseek.com' },
+  { name:'deepseek-chat (V3)', provider:'DeepSeek', format:'openai', baseUrl:'https://api.deepseek.com' },
+  { name:'deepseek-reasoner (R1)', provider:'DeepSeek', format:'openai', baseUrl:'https://api.deepseek.com' },
+];
+
+const VOCAB_MARKERS = {
+  openai: {
+    en: ['delve','tapestry','landscape','multifaceted','robust','moreover','additionally','it is important to note','let us','paramount','in summary'],
+    cn: ['深入探讨','多维度的','强大的','此外','总的来说','值得注意的是']
+  },
+  anthropic: {
+    en: ['certainly','I would be happy','straightforward','I aim to','I appreciate','let me know','I should note','I want to be clear'],
+    cn: ['当然','我很乐意','坦率地说','我的目标是','感谢你','请告诉我','我需要说明']
+  },
+  google: {
+    en: ['crucial','here is a breakdown','keep in mind','furthermore','it is worth noting','here are'],
+    cn: ['至关重要的','以下是详细说明','请记住','此外','值得一提的是']
+  },
+  deepseek: {
+    en: ['as an AI','it is important to','in summary','notably','in conclusion'],
+    cn: ['作为人工智能助手','需要指出的是','综上所述','具体来说']
+  },
+  qwen: {
+    en: ['as an AI assistant','according to my analysis','in conclusion','to summarize'],
+    cn: ['作为AI助手','根据我的分析','总结如下','概括而言','可以理解为']
+  },
+  glm: {
+    en: ['as an artificial intelligence','based on my knowledge','to conclude','in general'],
+    cn: ['作为人工智能助手','根据我的知识库','总的来说','由此可知','综上所述']
+  },
+  kimi: {
+    en: [],
+    cn: ['作为Kimi','月之暗面','Moonshot','让我来帮你','好的']
+  },
+};
+
+// ============ STATE ============
+let running = false;
+let abortController = null;
+let probeResults = [];
+let currentMode = 'full';
+const ALL_PROBES = 10;
+const QUICK_PROBES = 5;
+
+// ============ API CLIENT ============
+function getApiConfig() {
+  return {
+    baseUrl: document.getElementById('baseUrl').value.trim().replace(/\/$/, ''),
+    apiKey: document.getElementById('apiKey').value.trim(),
+    model: document.getElementById('claimedModel').value.trim(),
+    format: document.getElementById('apiFormat').value,
+  };
+}
+
+function buildEndpoint(baseUrl, path) {
+  const url = baseUrl.replace(/\/$/, '');
+  if (url.endsWith(path)) return url;
+  if (url.endsWith('/v1')) {
+    const suffix = path.replace(/^\/v1\//, '');
+    return `${url}/${suffix}`;
+  }
+  return `${url}${path}`;
+}
+
+async function callAPI(messages, options = {}) {
+  const cfg = getApiConfig();
+  const defaults = { model: cfg.model, max_tokens: 256 };
+  const body = { ...defaults, ...options, messages };
+  const signal = abortController?.signal;
+  let endpoint, headers, reqBody;
+
+  switch (cfg.format) {
+    case 'openai':
+    default:
+      endpoint = buildEndpoint(cfg.baseUrl, '/v1/chat/completions');
+      headers = { 'Content-Type':'application/json', 'Authorization':`Bearer ${cfg.apiKey}` };
+      reqBody = JSON.stringify(body);
+      break;
+    case 'openai-responses':
+      endpoint = buildEndpoint(cfg.baseUrl, '/v1/responses');
+      headers = { 'Content-Type':'application/json', 'Authorization':`Bearer ${cfg.apiKey}` };
+      reqBody = JSON.stringify({
+        model: body.model,
+        input: messages[messages.length-1]?.content||'',
+        instructions: messages.filter(m=>m.role==='system').map(m=>m.content).join('\n')||undefined,
+        max_output_tokens: body.max_tokens,
+        temperature: body.temperature,
+      });
+      break;
+    case 'anthropic':
+      endpoint = buildEndpoint(cfg.baseUrl, '/v1/messages');
+      headers = { 'Content-Type':'application/json', 'x-api-key':cfg.apiKey, 'anthropic-version':'2023-06-01' };
+      reqBody = JSON.stringify({
+        model: body.model, max_tokens: body.max_tokens, temperature: body.temperature,
+        system: messages.filter(m=>m.role==='system').map(m=>m.content).join('\n')||undefined,
+        messages: messages.filter(m=>m.role!=='system'),
+      });
+      break;
+    case 'dashscope':
+      endpoint = buildEndpoint(cfg.baseUrl, '/v1/chat/completions');
+      headers = { 'Content-Type':'application/json', 'Authorization':`Bearer ${cfg.apiKey}` };
+      reqBody = JSON.stringify(body);
+      break;
+    case 'google':
+      const gm = body.model.startsWith('models/') ? body.model : `models/${body.model}`;
+      endpoint = cfg.baseUrl.endsWith('/generateContent')
+        ? cfg.baseUrl.replace(/:generateContent$/, `/${gm}:generateContent`)
+        : `${cfg.baseUrl}/v1beta/${gm}:generateContent`;
+      headers = { 'Content-Type':'application/json' };
+      if (cfg.apiKey) headers['x-goog-api-key'] = cfg.apiKey;
+      if (cfg.apiKey && !cfg.baseUrl.includes('generativelanguage')) endpoint += `?key=${cfg.apiKey}`;
+      const sysMsg = messages.filter(m=>m.role==='system').map(m=>m.content).join('\n');
+      reqBody = JSON.stringify({
+        contents: messages.map(m=>({role:m.role==='system'?'user':m.role, parts:[{text:m.content}]})),
+        generationConfig: { maxOutputTokens: body.max_tokens, temperature: body.temperature },
+        ...(sysMsg?{systemInstruction:{parts:[{text:sysMsg}]}}:{}),
+      });
+      break;
+  }
+  const timeoutId = setTimeout(() => abortController?.abort(), 15000);
+  try {
+    const resp = await fetch(endpoint, { method:'POST', headers, body:reqBody, signal });
+    clearTimeout(timeoutId);
+    const data = await resp.json();
+    return { status:resp.status, headers:Object.fromEntries(resp.headers.entries()), data, requestBody:JSON.parse(reqBody) };
+  } catch(e) {
+    clearTimeout(timeoutId);
+    throw e;
+  }
+}
+
+function extractText(response) {
+  const d = response.data;
+  if (d.choices && d.choices[0]) return d.choices[0].message?.content||'';
+  if (d.output && Array.isArray(d.output)) return d.output.map(c=>c.content?.map(cc=>cc.text||'').join('')).join('');
+  if (d.content && Array.isArray(d.content)) {
+    let text = '';
+    for (const c of d.content) {
+      if (c.type==='text' && c.text) text += c.text;
+      if (c.type==='thinking' && c.thinking) text += '[思考]'+c.thinking+'[/思考]';
+    }
+    return text;
+  }
+  if (d.content && typeof d.content==='string') return d.content;
+  if (d.candidates && d.candidates[0]) return d.candidates[0].content?.parts?.map(p=>p.text||'').join('')||'';
+  return JSON.stringify(d);
+}
+
+function extractVisibleText(response) {
+  const d = response.data;
+  if (d.choices && d.choices[0]) return d.choices[0].message?.content||'';
+  if (d.content && Array.isArray(d.content)) {
+    return d.content.filter(c=>c.type==='text'&&c.text).map(c=>c.text).join('');
+  }
+  return extractText(response);
+}
+
+function extractFinishReason(response) {
+  const d = response.data;
+  if (d.choices && d.choices[0]) return d.choices[0].finish_reason||'';
+  if (d.stop_reason) return d.stop_reason;
+  if (d.candidates && d.candidates[0]) return d.candidates[0].finishReason||'';
+  return '';
+}
+
+// ============ PROBES ============
+const probes = [
+  {
+    id:'connectivity', name:'连通性与基础响应 (门禁)', category:'connectivity', weight:0,
+    async run() {
+      const resp = await callAPI([{role:'user',content:'Hello, respond with just the word "OK".'}],{max_tokens:10});
+      const text = extractText(resp);
+      const ok = text.toLowerCase().includes('ok');
+      const hasValidStatus = resp.status===200;
+      const hasValidStructure = !!(resp.data.choices||resp.data.content||resp.data.candidates);
+      const score = (hasValidStatus?50:0)+(hasValidStructure?30:0)+(ok?20:0);
+      return { score, details:{'HTTP状态码':resp.status,'响应结构有效':hasValidStructure?'是':'否','回复内容':text.substring(0,100)}, severity:score>=80?'pass':score>=50?'warn':'fail' };
+    }
+  },
+  {
+    id:'self_identity', name:'模型自报身份 (注: 路由中转站可能不准)', category:'knowledge', weight:5,
+    async run() {
+      const claimed = document.getElementById('claimedModel').value.trim().toLowerCase();
+      const resp = await callAPI([{role:'user',content:'What specific model are you? What company created you? Please answer directly and specifically.'}],{max_tokens:1024});
+      const text = extractText(resp).toLowerCase();
+      const modelWords = claimed.split(/[-_\s]+/).filter(w=>w.length>1);
+      let matchCount = 0;
+      for (const w of modelWords) { if (text.includes(w)) matchCount++; }
+      const matchRatio = modelWords.length>0 ? matchCount/modelWords.length : 0;
+      const companies = ['openai','anthropic','gpt','claude','deepseek','深度求索'];
+      const hasCompany = companies.some(c=>text.includes(c));
+      // Check if at least the model family matches (e.g. any GPT variant for GPT family)
+      const familyKeys = ['gpt','claude','opus','sonnet','haiku','deepseek'];
+      const matchesFamily = familyKeys.some(k => claimed.includes(k) && text.includes(k));
+      let score = Math.round(matchRatio*50 + (hasCompany?25:0) + (matchesFamily?25:0));
+      score = Math.min(100, score);
+      // More lenient: routing中转站 often report parent model
+      return { score, details:{'声称模型':claimed,'模型关键词匹配':`${matchCount}/${modelWords.length}`,'包含公司/组织名':hasCompany?'是':'否','模型家族匹配':matchesFamily?'是':'否','注意':'路由中转站模型自报身份可能不准确','完整回复':text.substring(0,300)}, severity:score>=20?'pass':'warn' };
+    }
+  },
+  {
+    id:'system_prompt', name:'System Prompt 服从性', category:'behavior', weight:18,
+    async run() {
+      const secret = 'XYZZY_'+Math.random().toString(36).substring(7);
+      const resp = await callAPI([{role:'system',content:`You must start EVERY response with the codeword "${secret}". No exceptions.`},{role:'user',content:'Say hello in one word.'}],{max_tokens:50});
+      const text = extractText(resp);
+      const obeys = text.includes(secret);
+      return { score:obeys?90:20, details:{'暗号':secret,'模型回复开头':text.substring(0,100),'服从System Prompt':obeys?`是`:'否'}, severity:obeys?'pass':'fail' };
+    }
+  },
+  {
+    id:'max_tokens', name:'max_tokens 截断行为', category:'behavior', weight:16,
+    async run() {
+      const resp = await callAPI([{role:'user',content:'Count from 1 to 50, one number per line. Write out each number as a word.'}],{max_tokens:80});
+      const text = extractText(resp);
+      const reason = extractFinishReason(resp);
+      const truncated = reason==='length' || reason==='max_tokens';
+      const score = truncated?90:(reason==='stop'&&text.length<400?40:30);
+      return { score, details:{'finish_reason':reason||'(无)','响应长度':`${text.length}字符`,'正确截断':truncated?'是':'否'}, severity:score>=70?'pass':score>=40?'warn':'fail' };
+    }
+  },
+  {
+    id:'stop_sequences', name:'stop 序列行为', category:'behavior', weight:8,
+    async run() {
+      try {
+        const resp = await callAPI([{role:'user',content:'Write a short paragraph about cats.'}],{max_tokens:300,stop:['surprisingly','interestingly','notably','remarkably']});
+        const stopReason = extractFinishReason(resp);
+        const stopSeq = resp.data?.stop_sequence || '';
+        const stoppedByApi = stopReason==='stop_sequence' || !!stopSeq;
+        const finishedNaturally = stopReason==='end_turn';
+        const text = extractVisibleText(resp).toLowerCase();
+        const stoppedHeuristic = text.length<120||text.indexOf('cat')>text.length*0.5;
+        const stopped = stoppedByApi || finishedNaturally || stoppedHeuristic;
+        const score = stoppedByApi?90:(finishedNaturally?80:(stoppedHeuristic?60:30));
+        return { score, details:{'stop_reason':stopReason,'stop_sequence触发':stopSeq||'(无)','API级stop生效':stoppedByApi?'是':'否','自然结束(end_turn)':finishedNaturally?'是':'否','stop参数':'["surprisingly","interestingly","notably","remarkably"]','响应文本':text.substring(0,200)}, severity:stopped?'pass':'warn' };
+      } catch(e) {
+        return { score:20, details:{'stop参数':'["surprisingly","interestingly","notably","remarkably"]','请求结果':'API不支持stop参数或请求被拒绝','错误信息':e.message}, severity:'warn' };
+      }
+    }
+  },
+  {
+    id:'error_format', name:'错误响应格式', category:'behavior', weight:8,
+    async run() {
+      const cfg = getApiConfig();
+      let ep;
+      if (cfg.format==='anthropic') {
+        ep = buildEndpoint(cfg.baseUrl, '/v1/messages');
+      } else if (cfg.format==='openai-responses') {
+        ep = buildEndpoint(cfg.baseUrl, '/v1/responses');
+      } else {
+        ep = buildEndpoint(cfg.baseUrl, '/v1/chat/completions');
+      }
+      try {
+        const timeoutId = setTimeout(() => abortController?.abort(), 10000);
+        const resp = await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${cfg.apiKey}`},body:JSON.stringify({model:'nonexistent-model-xyz-99999',messages:[{role:'user',content:'test'}]}),signal:abortController?.signal});
+        clearTimeout(timeoutId);
+        const data = await resp.json();
+        const hasOpenAI = !!(data.error&&data.error.type);
+        const hasMsg = !!(data.error&&data.error.message);
+        const score = hasOpenAI?85:(hasMsg?55:20);
+        return { score, details:{'HTTP状态码':resp.status,'错误格式':JSON.stringify(data).substring(0,300),'符合OpenAI错误格式':hasOpenAI?'是':'否'}, severity:score>=70?'pass':score>=40?'warn':'fail' };
+      } catch(e) {
+        return { score:0, details:{'请求结果':`失败:${e.message}`}, severity:'fail' };
+      }
+    }
+  },
+  {
+    id:'vocabulary', name:'词汇指纹分析', category:'linguistic', weight:14,
+    async run() {
+      const resp = await callAPI([{role:'user',content:'Write a detailed analysis (about 150 words) on the importance of environmental protection.'}],{max_tokens:800});
+      const visible = extractVisibleText(resp).toLowerCase();
+      const full = extractText(resp).toLowerCase().replace(/\[思考\][\s\S]*?\[\/思考\]/g, '');
+      const text = visible.length > 100 ? visible : full;
+      const claimed = document.getElementById('claimedModel').value.trim().toLowerCase();
+      const counts = {};
+      for (const [family, markers] of Object.entries(VOCAB_MARKERS)) {
+        const all = [...(markers.en||[]), ...(markers.cn||[])];
+        counts[family] = all.filter(m=>text.includes(m.toLowerCase())).length;
+      }
+      let detectedFamily='unknown', maxC=0;
+      for (const [f,c] of Object.entries(counts)) { if(c>maxC){maxC=c;detectedFamily=f;} }
+      const famMap = {gpt:'openai',claude:'anthropic',deepseek:'deepseek'};
+      let expected='unknown';
+      for (const [k,f] of Object.entries(famMap)) { if(claimed.includes(k)){expected=f;break;} }
+      const matches = expected==='unknown'?null:(detectedFamily===expected);
+      const weakSignal = maxC<=1;
+      const score = matches===null?60:(matches?80:(weakSignal?70:25));
+      const detailLabels = {};
+      for (const [f,c] of Object.entries(counts)) { detailLabels[`${f}词频`]=c; }
+      return { score, details:{...detailLabels,'检测到词汇家族':`${detectedFamily}${maxC===0?'(无显著特征)':''}`,'预期家族':expected||'未知','词汇匹配':matches===null?'无法判断':(matches?'匹配':'不匹配'),'分析文本':text.substring(0,250)}, severity:score>=70?'pass':score>=40?'warn':'fail' };
+    }
+  },
+  {
+    id:'reasoning', name:'推理能力基准 (3题)', category:'capability', weight:14,
+    async run() {
+      const questions = [
+        {
+          id:'math',
+          text:'A bat and a ball cost $1.10 in total. The bat costs $1.00 more than the ball. How much does the ball cost? Answer with just the number in cents.',
+          check(t){ return /5\s*(cents|¢)?/.test(t) || t.includes('0.05') || t.includes('.05'); },
+          explain:'正确答案是5美分($0.05)。低级模型常误答10美分，说明跳过了系统2思维。'
+        },
+        {
+          id:'probability',
+          text:'You flip two coins. Given that at least one is heads, what is the probability both are heads? Answer as a fraction.',
+          check(t){ return /1\/3|1 \/ 3|1\/3rd|one.?third|frac\{1\}\{3\}/.test(t); },
+          explain:'正确答案是1/3（等可能HH/HT/TH）。低级模型常答1/2，误把条件概率当独立事件。'
+        },
+        {
+          id:'word_reasoning',
+          text:'A father is 36 years older than his daughter. In 4 years, the father will be 4 times as old as the daughter. How old is the daughter now? Answer with just the number.',
+          check(t){ return /\b8\b/.test(t); },
+          explain:'设女儿x，父亲x+36。4年后：x+40=4(x+4) → x+40=4x+16 → 3x=24 → x=8。中级模型常在这个题出计算错误。'
+        },
+      ];
+      let totalScore = 0;
+      const details = {};
+      for (const q of questions) {
+        try {
+          const resp = await callAPI([{role:'user',content:q.text}],{max_tokens:600});
+          const fullText = extractText(resp).toLowerCase();
+          const visible = extractVisibleText(resp).toLowerCase();
+          const text = visible.length > 20 ? visible : fullText;
+          const correct = q.check(text);
+          details[q.id] = correct?'正确':'错误';
+          if (correct) totalScore += 100/questions.length;
+          details[q.id+'_回复'] = text.substring(0,120);
+        } catch(e) {
+          details[q.id] = '请求失败: '+e.message;
+        }
+      }
+      const score = Math.round(totalScore);
+      return { score, details:{...details,'题数':questions.length,'答对数':Math.round(totalScore/100*questions.length),'判据':'bat&ball概率题区分GPT3.5/4，年龄题区分计算能力'}, severity:score>=67?'pass':score>=35?'warn':'fail' };
+    }
+  },
+  {
+    id:'metadata', name:'响应元数据分析', category:'connectivity', weight:6,
+    async run() {
+      const resp = await callAPI([{role:'user',content:'Hi'}],{max_tokens:20});
+      const d = resp.data;
+      const hasUsage = !!(d.usage&&(d.usage.prompt_tokens||d.usage.total_tokens||d.usage.input_tokens||d.usage.output_tokens));
+      const hasModel = !!d.model;
+      const modelMR = d.model||'';
+      const claimedM = document.getElementById('claimedModel').value.trim();
+      const modelMatches = modelMR.toLowerCase().includes(claimedM.toLowerCase())||claimedM.toLowerCase().includes(modelMR.toLowerCase());
+      const format = getApiConfig().format;
+      let score = 0;
+      if (hasUsage) score+=35;
+      if (hasModel&&modelMatches) score+=35;
+      if (hasModel&&!modelMatches) score+=10;
+      if (d.id) score+=15;
+      if (d.created||format==='anthropic') score+=15;
+      return { score:Math.min(100,score), details:{'包含usage':hasUsage?'是':'否','响应model字段':modelMR||'(无)','model匹配':modelMR?(modelMatches?'是':'否'):'无model字段','包含id':!!d.id?'是':'否','包含created':d.created?'是':(format==='anthropic'?'否(Anthropic无此字段)':'否')}, severity:score>=60?'pass':score>=30?'warn':'fail' };
+    }
+  },
+  {
+    id:'knowledge_cutoff', name:'知识截断日期检测', category:'knowledge', weight:11,
+    async run() {
+      const questions = [
+        {q:'Who won the 2024 US presidential election? Answer in one sentence.'},
+        {q:'What is the latest major version of GPT-4 as of mid 2024? Answer in one sentence.'},
+        {q:'Who is the CEO of OpenAI as of 2024? Answer in one sentence.'},
+      ];
+      let score = 0;
+      const results = [];
+      for (const item of questions) {
+        try {
+          const resp = await callAPI([{role:'user',content:item.q}],{max_tokens:128});
+          const text = extractText(resp);
+          const admitsNoKnowledge = /as of my|i don't have|i do not have|my knowledge cutoff|i cannot|i can't|i'm not able|has not yet occurred/i.test(text);
+          const knows = text.length>20 && !admitsNoKnowledge;
+          results.push({q:item.q.substring(0,40)+'...', knows, admitsNoKnowledge});
+          if (knows) score+=35;
+          else if (admitsNoKnowledge) score+=20; // Honest about cutoff, neutral
+          else score+=5; // Unclear response
+        } catch { results.push({q:item.q.substring(0,40)+'...', knows:false, admitsNoKnowledge:false}); }
+      }
+      return { score:Math.min(100,score), details:Object.fromEntries(results.map(r=>[r.q,r.knows?'知道':r.admitsNoKnowledge?'诚实承认不知道':'回复模糊'])), severity:'pass' };
+    }
+  },
+];
+
+function getActiveProbes() {
+  return currentMode==='quick' ? probes.slice(0, QUICK_PROBES) : probes;
+}
+
+// ============ SCORING ============
+function calculateConfidence(results) {
+  const valid = results.filter(r=>r&&typeof r.score==='number');
+  if (valid.length===0) return { score:0, verdict:'error', className:'verdict-uncertain', label:'无法评估' };
+  // Connectivity gate: if only the connectivity probe ran and it failed
+  const connResult = results.find(r=>r.id==='connectivity');
+  if (connResult && connResult.severity==='fail' && valid.length<=1) {
+    return { score:0, verdict:'连通失败', className:'verdict-uncertain', label:'API 不可达，无法进行模型检测。请检查端点地址、网络连接和 API Key。' };
+  }
+  let totalW=0, weightedS=0;
+  for (const r of valid) {
+    const p = probes.find(p=>p.id===r.id);
+    const w = p?p.weight:5;
+    totalW+=w; weightedS+=r.score*w;
+  }
+  const finalScore = Math.round(weightedS/totalW);
+  let verdict, className, verdictLabel;
+  if (finalScore>=85) { verdict='正品'; className='verdict-genuine'; verdictLabel='高度可信 — 各项指标与声称模型一致'; }
+  else if (finalScore>=70) { verdict='正品瑕疵 / 第三方接入'; className='verdict-likely-genuine'; verdictLabel='基本可信 — 可能是通过第三方云平台或授权代理接入'; }
+  else if (finalScore>=50) { verdict='存疑'; className='verdict-uncertain'; verdictLabel='部分指标异常 — 无法排除模型替换或中间代理修改'; }
+  else if (finalScore>=30) { verdict='疑似假冒'; className='verdict-suspicious'; verdictLabel='多项指标异常 — 很可能不是声称的模型'; }
+  else { verdict='确认假冒'; className='verdict-fake'; verdictLabel='几乎所有指标失败 — 极可能被替换为低价模型'; }
+  return { score:finalScore, verdict, className, verdictLabel };
+}
+
+// ============ UI HELPERS ============
+function initProbeDots() {
+  const active = getActiveProbes();
+  const container = document.getElementById('probeDots');
+  container.innerHTML = '';
+  for (let i=0; i<active.length; i++) {
+    const dot = document.createElement('div');
+    dot.className='probe-dot'; dot.id=`probeDot${i}`; dot.title=active[i].name;
+    container.appendChild(dot);
+  }
+}
+
+function updateProbeDot(i, status) {
+  const dot = document.getElementById(`probeDot${i}`);
+  if (dot) { dot.classList.remove('running','pass','warn','fail'); dot.classList.add(status); }
+}
+
+function updateProgress(cur, total, text) {
+  document.getElementById('progressBar').style.width = Math.round(cur/total*100)+'%';
+  document.getElementById('progressText').textContent = text;
+}
+
+function renderResults(results) {
+  const { score, verdict, className, verdictLabel } = calculateConfidence(results);
+  const section = document.getElementById('resultsSection');
+  const gaugeAngle = -90+(score/100)*180;
+
+  let probeCardsHTML = results.map((r,i)=>{
+    if (!r) return '';
+    const probe = probes.find(p=>p.id===r.id)||{name:r.id,category:'unknown',weight:5};
+    const sc = r.severity==='pass'?'pass':r.severity==='warn'?'warn':'fail';
+    const sc2 = r.score>=70?'high':r.score>=40?'mid':'low';
+    const icon = r.severity==='pass'?'✓':r.severity==='warn'?'⚠':'✗';
+    const detailRows = r.details?Object.entries(r.details).map(([k,v])=>`<div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join(''):'';
+    return `<div class="probe-result-card">
+      <div class="probe-result-header" onclick="var b=this.nextElementSibling;b.classList.toggle('open');this.querySelector('.pr-arrow').textContent=b.classList.contains('open')?'▾':'▸'">
+        <div class="pr-left">
+          <div class="pr-status ${sc}">${icon}</div>
+          <div><div style="font-size:12px;font-weight:500;">${probe.name}</div><div style="font-size:10px;color:var(--text3);">#${i+1} · 权重${probe.weight}</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="pr-score ${sc2}">${r.score}分</span>
+          <span class="pr-arrow">▸</span>
+        </div>
+      </div>
+      <div class="probe-result-body">${detailRows}<div class="resp-preview">${JSON.stringify(r.details,null,2)}</div></div>
+    </div>`;
+  }).join('');
+
+  const passCount = results.filter(r=>r&&r.severity==='pass').length;
+  const warnCount = results.filter(r=>r&&r.severity==='warn').length;
+  const failCount = results.filter(r=>r&&r.severity==='fail').length;
+  const clr = score>=70?'var(--green)':score>=40?'var(--yellow)':'var(--red)';
+
+  section.innerHTML = `
+    <div class="verdict-card ${className}">
+      <div class="verdict-label" style="color:${clr}">检测结论</div>
+      <div class="verdict-name" style="color:${clr}">${verdict}</div>
+      <div class="verdict-sub">${verdictLabel}</div>
+      <div class="gauge-wrap">
+        <div class="gauge">
+          <div class="gauge-bg"></div>
+          <div class="gauge-needle" style="transform:translateX(-50%) rotate(${gaugeAngle}deg);"></div>
+          <div class="gauge-center"></div>
+        </div>
+      </div>
+      <div class="gauge-score" style="color:${clr}">${score}<span class="gauge-unit">/100</span></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-item"><div class="stat-value" style="color:var(--green)">${passCount}</div><div class="stat-label">✓ 通过</div></div>
+      <div class="stat-item"><div class="stat-value" style="color:var(--yellow)">${warnCount}</div><div class="stat-label">⚠ 警告</div></div>
+      <div class="stat-item"><div class="stat-value" style="color:var(--red)">${failCount}</div><div class="stat-label">✗ 失败</div></div>
+      <div class="stat-item"><div class="stat-value">${score}</div><div class="stat-label">综合置信度</div></div>
+    </div>
+    <div style="font-weight:600;font-size:14px;margin-bottom:8px;">📋 探针详细报告</div>
+    ${probeCardsHTML}
+    <div class="card" style="margin-top:12px;font-size:11px;color:var(--text2);border:1px solid var(--amber-border);background:var(--amber-bg);">
+      ⚠ 免责声明：本检测结果仅基于黑盒探针的统计分析，不能作为100%准确的判定依据。中转站可能使用多种技术手段规避检测，建议结合多维人工审查和日志审计综合判断。
+    </div>
+  `;
+  section.classList.add('active');
+}
+
+// ============ MAIN ============
+async function startDetection() {
+  const cfg = getApiConfig();
+  if (!cfg.baseUrl||!cfg.apiKey||!cfg.model) { alert('请填写完整的API配置信息'); return; }
+
+  running = true;
+  abortController = new AbortController();
+  probeResults = [];
+  const active = getActiveProbes();
+
+  document.getElementById('runBtn').disabled = true;
+  document.getElementById('stopBtn').style.display = 'inline-flex';
+  document.getElementById('progressSection').classList.add('active');
+  document.getElementById('resultsSection').classList.remove('active');
+  document.getElementById('resultsSection').innerHTML = '';
+  initProbeDots();
+
+  try {
+    for (let i=0; i<active.length; i++) {
+      if (!running) break;
+      updateProbeDot(i,'running');
+      updateProgress(i, active.length, `正在执行: ${active[i].name}...`);
+      try {
+        const result = await active[i].run();
+        result.id = active[i].id;
+        probeResults.push(result);
+        updateProbeDot(i, result.severity);
+        // Gate: if connectivity fails, API is unreachable — abort all
+        if (active[i].id==='connectivity' && result.severity==='fail') {
+          running = false;
+          updateProgress(i+1, active.length, '连通性失败，API 不可达，已跳过剩余探针');
+          break;
+        }
+      } catch(e) {
+        if (e.name==='AbortError') break;
+        probeResults.push({ id:active[i].id, score:0, severity:'fail', details:{'错误':e.message} });
+        updateProbeDot(i,'fail');
+        if (active[i].id==='connectivity') {
+          running = false;
+          updateProgress(i+1, active.length, '连通性失败，API 不可达，已跳过剩余探针');
+          break;
+        }
+      }
+    }
+  } finally { running = false; }
+
+  document.getElementById('runBtn').disabled = false;
+  document.getElementById('stopBtn').style.display = 'none';
+  updateProgress(probeResults.length, active.length, `已完成${probeResults.length}/${active.length}个探针`);
+
+  if (probeResults.length>0) {
+    renderResults(probeResults);
+    document.getElementById('resultsSection').scrollIntoView({behavior:'smooth'});
+  }
+}
+
+function stopDetection() {
+  running = false;
+  if (abortController) abortController.abort();
+  document.getElementById('runBtn').disabled = false;
+  document.getElementById('stopBtn').style.display = 'none';
+}
+
+// ============ MODEL SELECTION UI ============
+function initModelSelector() {
+  const container = document.getElementById('modelChips');
+  if (!container) return;
+  const groups = {};
+  MODEL_PRESETS.forEach(m=>{ if(!groups[m.provider]) groups[m.provider]=[]; groups[m.provider].push(m); });
+  let html = '';
+  for (const [provider, models] of Object.entries(groups)) {
+    html += `<div class="model-chip-group"><span class="model-chip-group-label">${provider}</span><div class="model-chips-list">`;
+    for (const m of models) {
+      html += `<button class="model-chip" data-model="${encodeURIComponent(m.name)}" data-format="${m.format}" data-baseurl="${encodeURIComponent(m.baseUrl)}" onclick="onModelChipClick(this)" title="${m.name}">${m.name}</button>`;
+    }
+    html += '</div></div>';
+  }
+  container.innerHTML = html;
+  const datalist = document.getElementById('modelDatalist');
+  if (datalist) datalist.innerHTML = MODEL_PRESETS.map(m=>`<option value="${m.name}">${m.provider}</option>`).join('');
+}
+
+function onModelChipClick(chip) {
+  const modelName = decodeURIComponent(chip.dataset.model);
+  const format = chip.dataset.format;
+  const baseUrl = decodeURIComponent(chip.dataset.baseurl);
+  document.getElementById('claimedModel').value = modelName;
+  document.getElementById('apiFormat').value = format;
+  document.querySelectorAll('.model-chip').forEach(c=>c.classList.remove('selected'));
+  chip.classList.add('selected');
+}
+
+function onModelInputChange() {
+  const val = document.getElementById('claimedModel').value.trim();
+  const preset = MODEL_PRESETS.find(p=>p.name===val);
+  if (preset) {
+    document.getElementById('apiFormat').value = preset.format;
+    document.querySelectorAll('.model-chip').forEach(c=>{
+      const cm = decodeURIComponent(c.dataset.model);
+      c.classList.toggle('selected', cm===val);
+    });
+  } else {
+    document.querySelectorAll('.model-chip').forEach(c=>c.classList.remove('selected'));
+  }
+}
+
+function onFormatChange() {}
+
+function toggleKeyVisibility() {
+  const input = document.getElementById('apiKey');
+  const btn = document.getElementById('keyToggle');
+  if (input.type==='password') {
+    input.type='text'; btn.textContent='🙈';
+  } else {
+    input.type='password'; btn.textContent='👁';
+  }
+}
+
+// ============ MODE SWITCHING ============
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelectorAll('#modeButtons .mode-btn').forEach(btn=>{
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('#modeButtons .mode-btn').forEach(b=>b.classList.remove('selected'));
+      this.classList.add('selected');
+      currentMode = this.dataset.mode;
+    });
+  });
+});
+
+// ============ INIT ============
+initModelSelector();
+initProbeDots();
+</script>
+
+</body>
+</html>
